@@ -13,6 +13,16 @@ npm run dev
 
 Open the URL printed by the server (by default, `http://127.0.0.1:5173`). The app and its assets are served from this folder; it does not call the reference site or require an API.
 
+## Deploy to Vercel
+
+The project is configured as a static Vercel deployment. From the project root, run:
+
+```bash
+npm run build
+```
+
+The build writes the deployable site to `dist/`. `vercel.json` selects the **Other** framework preset, runs this build command, and publishes `dist`; no API keys or environment variables are required. In Vercel, set the project root to this folder if the repository contains additional folders.
+
 ## Course controls
 
 - Select a lesson in the course sidebar or use search (`Ctrl+K`).
