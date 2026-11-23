@@ -577,7 +577,14 @@ a:focus-visible,
   .stage__tools { flex-wrap: nowrap; max-width: calc(100% - 16px); }
   :root:not([data-layout="desktop"]) .tool { width: 40px; height: 40px; min-width: 40px; padding: 0; }
   :root:not([data-layout="desktop"]) .stage__tools .course-stage-action { min-width: 40px; }
-  :root:not([data-layout="desktop"]) .stage__legend { inset-inline-end: 216px; bottom: 20px; }
+  :root[data-layout="stack"] .stage { height: clamp(340px, min(88vw, 64dvh), 560px); }
+  :root[data-layout="stack"] .stage__legend {
+    inset-inline: 10px;
+    bottom: 58px;
+    max-width: calc(100% - 20px);
+    overflow-x: auto;
+  }
+  :root[data-layout="stack"] .stage__canvas { inset-block-end: 108px; }
   .guide { padding: 14px 12px 12px; }
   .guide__body { font-size: 14px; line-height: 1.68; }
   .guide__nav { gap: 7px; }
