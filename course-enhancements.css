@@ -330,6 +330,24 @@
   background: #3a2b35;
 }
 
+/* Keep pale amber badges from washing out their text in dark mode. */
+:root[data-theme="dark"] .tag--sand,
+:root[data-theme="dark"] .chapter--sand,
+:root[data-theme="dark"] .chapter--amber {
+  color: #f3d59a;
+  border-color: #6e5a36;
+  background: #3b3529;
+}
+
+/* The dark palette uses a light indigo fill, so these controls need dark text. */
+:root[data-theme="dark"] .btn-next,
+:root[data-theme="dark"] .btn-next:hover:not(:disabled),
+:root[data-theme="dark"] .btn-pop,
+:root[data-theme="dark"] .btn-pop:hover,
+:root[data-theme="dark"] .timeline__steps li.is-current .timeline__dot {
+  color: #121a2a;
+}
+
 html,
 body,
 #app,
@@ -512,93 +530,14 @@ a:focus-visible,
 .course-progress-reset { color: var(--text-secondary); border-color: var(--border-default); }
 .course-progress-reset:hover { background: var(--surface-muted); }
 
-/* Fullscreen learning room: the live Guide node moves here, so stage state has one owner. */
-.fullscreen-room {
-  position: absolute;
-  z-index: 6;
-  inset: 10px 12px;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 10px;
-  pointer-events: none;
-}
-.fullscreen-tabs {
-  display: inline-flex;
-  width: max-content;
-  max-width: 100%;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid var(--border-default);
-  border-radius: 13px;
-  background: color-mix(in srgb, var(--surface-raised) 94%, transparent);
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--text-primary) 10%, transparent);
-  backdrop-filter: blur(14px);
-  pointer-events: auto;
-}
-.fullscreen-tab {
-  min-width: 118px;
-  min-height: 40px;
-  padding: 0 16px;
-  border-radius: 9px;
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 650;
-  transition: background-color .16s ease, color .16s ease;
-}
-.fullscreen-tab[aria-selected="true"] { color: #fff; background: var(--primary); box-shadow: 0 2px 6px color-mix(in srgb, var(--primary) 24%, transparent); }
-.fullscreen-panel { display: none; min-width: 0; min-height: 0; pointer-events: auto; }
-.stage.has-full-guide { border: 0; border-radius: 0; background: var(--bg-canvas); }
-.stage.has-full-guide .stage__canvas { inset: 124px 20px 78px; }
-.stage.has-full-guide .stage__hud { top: 60px; inset-inline: 16px; }
-.stage.has-full-guide .stage__tools { z-index: 9; top: 12px; bottom: auto; inset-inline-end: 12px; }
-.stage.has-full-guide .tool { min-height: 40px; }
-.stage.has-full-guide .stage__legend { bottom: 58px; }
-.stage.has-full-guide[data-fullscreen-view="guide"] .stage__canvas,
-.stage.has-full-guide[data-fullscreen-view="guide"] .stage__hud,
-.stage.has-full-guide[data-fullscreen-view="guide"] .stage__legend { display: none; }
-.stage.has-full-guide[data-fullscreen-view="guide"] .fullscreen-panel { display: flex; }
-.stage.has-full-guide[data-fullscreen-view="guide"] .fullscreen-room { inset: 12px; }
-.stage.has-full-guide[data-fullscreen-view="guide"] .fullscreen-room { grid-template-rows: auto minmax(0, 1fr); }
-.stage.has-full-guide[data-fullscreen-view="guide"] .fullscreen-panel #guide {
-  width: min(100%, 1080px);
-  height: 100%;
-  margin-inline: auto;
-  padding: clamp(18px, 3vw, 34px);
-  border: 1px solid var(--border-subtle);
-  border-radius: 18px;
-  background: var(--surface);
-  box-shadow: var(--shadow-soft);
-}
-.stage.has-full-guide[data-fullscreen-view="guide"] #guide .guide__content { padding: 4px 8px 18px; }
-.stage.has-full-guide[data-fullscreen-view="guide"] #guide {
-  display: flex;
-  min-height: 0;
-  overflow: hidden;
-}
-.stage.has-full-guide[data-fullscreen-view="guide"] #guide .guide__content {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-}
-.stage.has-full-guide[data-fullscreen-view="guide"] #guide .guide__nav {
-  position: static;
-  inset: auto;
-  flex: none;
-  margin-top: 10px;
-}
-.stage.has-full-guide[data-fullscreen-view="guide"] #guide .guide__title { font-size: clamp(22px, 3vw, 36px); line-height: 1.2; }
-.stage.has-full-guide[data-fullscreen-view="guide"] #guide .guide__body { max-width: 76ch; font-size: clamp(15px, 1.2vw, 18px); }
-.stage.has-full-guide[data-fullscreen-view="guide"] #guide .guide__nav { margin-top: 12px; }
-.stage.has-full-guide[data-fullscreen-view="guide"] #guide .guide__hint { display: none; }
-
 :root:not([data-layout="desktop"]) .stage__tools .tool { height: 44px; min-width: 44px; min-height: 44px; justify-content: center; }
 :root:not([data-layout="desktop"]) .stage__tools .course-stage-action { width: 44px; min-width: 44px !important; padding: 0 !important; font-size: 0; }
 :root:not([data-layout="desktop"]) .stage__tools .course-stage-action::before { font-size: 17px; line-height: 1; }
 :root:not([data-layout="desktop"]) #course-play::before { content: "▶"; }
 :root:not([data-layout="desktop"]) #course-replay::before { content: "↺"; }
-:root:not([data-layout="desktop"]) .stage:not(.has-full-guide) .stage__tools { top: auto; bottom: 8px; }
-:root:not([data-layout="desktop"]) .stage:not(.has-full-guide) .stage__legend { inset-inline-end: 8px; bottom: 60px; }
-:root:not([data-layout="desktop"]) .stage:not(.has-full-guide) .stage__canvas { inset-block-end: 90px; }
+:root:not([data-layout="desktop"]) .stage__tools { top: auto; bottom: 8px; }
+:root:not([data-layout="desktop"]) .stage__legend { inset-inline-end: 8px; bottom: 60px; }
+:root:not([data-layout="desktop"]) .stage__canvas { inset-block-end: 90px; }
 
 @media (max-width: 960px) {
   .menu-btn { width: 44px !important; height: 44px !important; margin-inline-end: 8px !important; }
@@ -613,19 +552,12 @@ a:focus-visible,
   .stage__tools .course-stage-action::before { font-size: 17px; line-height: 1; }
   #course-play::before { content: "▶"; }
   #course-replay::before { content: "↺"; }
-  :root:not([data-layout="desktop"]) .stage:not(.has-full-guide) .stage__tools { top: auto; bottom: 8px; }
-  :root:not([data-layout="desktop"]) .stage:not(.has-full-guide) .stage__legend { inset-inline-end: 8px; bottom: 58px; }
-  :root:not([data-layout="desktop"]) .stage:not(.has-full-guide) .stage__canvas { inset-block-end: 88px; }
+  :root:not([data-layout="desktop"]) .stage__tools { top: auto; bottom: 8px; }
+  :root:not([data-layout="desktop"]) .stage__legend { inset-inline-end: 8px; bottom: 58px; }
+  :root:not([data-layout="desktop"]) .stage__canvas { inset-block-end: 88px; }
   .timeline__steps button { min-height: 44px; }
   .timeline__steps li { min-height: 44px; }
   .btn-ghost { min-height: 44px; }
-  .fullscreen-room { inset: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)); }
-  .fullscreen-tab { min-width: 104px; min-height: 44px; }
-  .stage.has-full-guide .stage__canvas { inset: 120px 8px 82px; }
-  .stage.has-full-guide .stage__hud { top: 62px; }
-  .stage.has-full-guide .stage__tools { top: 10px; bottom: auto; }
-  .stage.has-full-guide .stage__legend { inset-inline-end: 12px; bottom: 58px; }
-  .stage.has-full-guide[data-fullscreen-view="guide"] #guide .guide__nav { position: static; box-shadow: none; }
 }
 
 @media (max-width: 639px) {
@@ -651,18 +583,6 @@ a:focus-visible,
   .guide__nav { gap: 7px; }
   .btn-ghost { padding-inline: 10px; }
   .btn-next { padding-inline: 12px; }
-  .fullscreen-room { inset: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)); gap: 8px; }
-  .fullscreen-tabs { width: 100%; }
-  .fullscreen-tab { flex: 1; min-width: 0; }
-  .stage.has-full-guide .stage__canvas { inset: 172px 6px 88px; }
-  .stage.has-full-guide .stage__hud { top: 112px; inset-inline: 8px; }
-  .stage.has-full-guide .stage__legend { inset-inline: 8px; bottom: 60px; }
-  .stage.has-full-guide .stage__tools { top: 60px; inset-inline-end: 8px; }
-  .stage.has-full-guide[data-fullscreen-view="guide"] .fullscreen-panel { padding-top: 50px; }
-  .stage.has-full-guide[data-fullscreen-view="guide"] .fullscreen-room { inset: max(8px, env(safe-area-inset-top)) 8px max(8px, env(safe-area-inset-bottom)); }
-  .stage.has-full-guide[data-fullscreen-view="guide"] .fullscreen-panel #guide { border-radius: 14px; padding: 14px 12px; }
-  .stage.has-full-guide[data-fullscreen-view="guide"] #guide .guide__content { margin: 0; padding-inline: 2px; }
-  .stage.has-full-guide[data-fullscreen-view="guide"] #guide .guide__nav { margin-inline: -12px; padding-inline: 12px; }
 }
 
 @media (max-width: 380px) {
@@ -670,9 +590,6 @@ a:focus-visible,
   .menu-btn { margin-inline-end: 4px !important; }
   .stage__hud { gap: 4px !important; }
   :root:not([data-layout="desktop"]) .chip { padding-inline: 8px !important; }
-  .fullscreen-tab { font-size: 12px; padding-inline: 8px; }
-  .stage.has-full-guide .stage__tools { gap: 3px !important; }
-  .stage.has-full-guide .tool { width: 36px; min-width: 36px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
