@@ -584,14 +584,10 @@ document.querySelector(`#app`).innerHTML=`
     <header class="topbar">
       <button class="menu-btn" id="menu-btn" type="button" data-t-aria="Open the course menu" aria-label="Open the course menu" aria-expanded="false" aria-controls="sidebar">${i(`menu`,{size:19,stroke:2.2})}</button>
       <a class="brand" href="#/" aria-label="System Design — home">
-        <svg class="logo" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true">
-          <path d="M16 10.6V15.4M8.2 19.4V15.4H23.8V18.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-          <rect x="9" y="2.4" width="14" height="8.6" rx="2.6" fill="#fcd4ad" stroke="currentColor" stroke-width="1.8"/>
-          <rect x="2" y="19.4" width="12.4" height="9" rx="2.6" fill="#a9c5e8" stroke="currentColor" stroke-width="1.8"/>
-          <path d="M18 20.4V27.2A5.8 2.2 0 0 0 29.6 27.2V20.4Z" fill="#cbbae6"/>
-          <ellipse cx="23.8" cy="20.4" rx="5.8" ry="2.2" fill="#ece4f6"/>
-          <path d="M18 20.4V27.2A5.8 2.2 0 0 0 29.6 27.2V20.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-          <ellipse cx="23.8" cy="20.4" rx="5.8" ry="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <svg class="logo" width="30" height="30" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M49 12H25C13 12 13 30 25 30h14c12 0 12 18 0 18H15" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="49" cy="12" r="5" fill="var(--teal)"/>
+          <circle cx="15" cy="48" r="5" fill="currentColor"/>
         </svg>
         <span class="brand__name">System <span>Design</span></span>
       </a>
