@@ -1,0 +1,89 @@
+{
+  "summary": "Coordinate work across services with separate databases, and handle failure without one long transaction.",
+  "goals": [
+    "Why a normal transaction cannot cover several services",
+    "How two-phase commit works and why it can block",
+    "How sagas use compensating actions",
+    "How orchestration and choreography differ",
+    "How to handle failed undos and unknown outcomes"
+  ],
+  "steps": [
+    {
+      "title": "One trip uses three databases",
+      "body": [
+        "A traveler books a flight, hotel, and rental car. Each belongs to a different service with its own database. The flight booking succeeds, then the hotel booking succeeds, but the car service has no cars left. The traveler now has a flight and hotel they cannot use, and may have been charged for both."
+      ],
+      "callout": "A database transaction works inside one database. Across services, there is no built-in command to undo every change."
+    },
+    {
+      "title": "Try two-phase commit",
+      "body": [
+        "One option is <span class=\"term\">two-phase commit</span> (2PC). First, a coordinator asks every service to <b>prepare</b>: do the work, hold the needed rows, and promise it can finish. If all services say yes, the coordinator tells them to <b>commit</b>. If one says no, they all roll back. Here, the car service says no, so nothing is booked."
+      ],
+      "callout": "Some databases and XA transactions use 2PC. Every participant must support it, but many web APIs and NoSQL stores do not."
+    },
+    {
+      "title": "The coordinator can leave work stuck",
+      "body": [
+        "After a service prepares, it must wait for the coordinator’s decision. If the coordinator crashes before sending it, the flight and hotel services hold locks on seats and rooms. They cannot commit or roll back on their own. Other travelers must wait until the coordinator recovers. The trip remains all-or-nothing, but it cannot finish."
+      ],
+      "callout": "2PC can block: one slow or failed coordinator can leave every participant waiting. This is often a poor fit across services and networks."
+    },
+    {
+      "title": "Use a saga to undo completed steps",
+      "body": [
+        "A <span class=\"term\">saga</span> splits the trip into short transactions, each committed in its own service: book a flight, then a hotel, then a car. Nothing stays locked across the whole trip. Each step has a <b>compensating action</b> that counteracts its effect. If the car booking fails, cancel the hotel, then cancel the flight."
+      ],
+      "callout": "A saga avoids long locks but gives up isolation: other users may briefly see some steps completed while later steps are still running."
+    },
+    {
+      "title": "Orchestrate the steps",
+      "body": [
+        "In an <b>orchestrated</b> saga, one component called the orchestrator tells each service what to do, waits for its reply, and chooses whether to continue or compensate. It saves every step in its own database. If it crashes, it can resume from the last saved state."
+      ],
+      "callout": "Workflow tools such as Temporal, AWS Step Functions, and Camunda are built to save, resume, and monitor workflows."
+    },
+    {
+      "title": "Let services react to events",
+      "body": [
+        "In a <b>choreographed</b> saga, there is no central coordinator. Flights publishes <code>FlightBooked</code>. Hotels listens, books a room, and publishes <code>HotelBooked</code>. Cars listens and rents a car—or publishes <code>CarFailed</code>, which tells Hotels and Flights to cancel. The flow is spread across services, so it can be harder to follow and change."
+      ],
+      "callout": "Choreography can suit a short workflow with few steps. A growing saga is often easier to reason about with an orchestrator."
+    },
+    {
+      "title": "A saga has no isolation",
+      "body": [
+        "While a saga runs, other people may see a partial result: the flight is reserved but the hotel is not yet booked. Some actions cannot truly be undone. An email confirming a flight has already been sent. Design around this: use a <b>pending</b> or <b>reserved</b> state, do likely-to-fail steps first, and do hard-to-undo steps—such as charging a card or sending an email—last."
+      ],
+      "callout": "A compensation is a new action, not a rollback. Refunding a charge is not the same as never charging the card."
+    },
+    {
+      "title": "Resume safely after a crash",
+      "body": [
+        "The orchestrator crashes after Hotels books a room but before it saves that fact. On restart it sees “hotel: pending” and sends the booking request again. Without protection, the traveler could get two rooms. Send an <b>idempotency key</b>, such as the saga ID plus the step, so Hotels recognizes the duplicate and returns the existing booking."
+      ],
+      "callout": "Sagas may retry a step, so each step and each compensation must be safe to run more than once."
+    },
+    {
+      "title": "Retry a compensation that fails",
+      "body": [
+        "The car booking fails, so the saga cancels the hotel. But the hotel API is down. The saga should keep retrying the cancellation with backoff. The cancellation must be safe to repeat. If it is still stuck after a few hours, put it in a queue for a person to resolve."
+      ],
+      "callout": "A compensation should be able to succeed eventually. Alert when one is stuck."
+    },
+    {
+      "title": "A timeout leaves the result unknown",
+      "body": [
+        "The car booking request times out. The car service may have booked it before the connection failed, or it may not have. A timeout means the result is <b>unknown</b>, not necessarily failed. If the saga compensates blindly, it might cancel a booking that never existed—or leave one that did. Query the car service for request <code>81-car</code>, or retry with the same idempotency key to learn the real result."
+      ],
+      "callout": "Treat a remote step as succeeded, failed, or unknown. Only a known result lets the saga choose its next action."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>A normal database transaction cannot cover several independent services.</li><li><b>Two-phase commit</b> is all-or-nothing, but can block if its coordinator fails.</li><li>A <b>saga</b> commits steps separately and runs <b>compensations</b> after failure.</li><li>Choose an orchestrator or event choreography; make every step idempotent.</li><li>Retry compensations, and treat timeouts as <b>unknown</b> until checked.</li></ul>"
+      ],
+      "callout": "Next: <b>Batch &amp; Stream Processing</b> — process huge volumes of events overnight or as they arrive."
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "summary": "Store large files outside the database, then upload, process, and serve them safely.",
+  "goals": [
+    "Keep file bytes in object storage and file details in the database",
+    "Upload directly with presigned URLs and split large files into parts",
+    "Process files and serve them through a CDN",
+    "Keep file records and stored objects in sync",
+    "Use storage classes, lifecycle rules, and private buckets"
+  ],
+  "steps": [
+    {
+      "title": "Start with photos in the database",
+      "body": [
+        "PhotoShare first saves each uploaded photo as a <span class=\"term\">BLOB</span> (binary data) in the database, beside its caption, owner, and date. This gives the team one place to store and back up everything. For the first few thousand users, it can work well."
+      ],
+      "callout": "A photo may be several megabytes. Its details—owner, size, caption, and date—may use only a few hundred bytes."
+    },
+    {
+      "title": "The database grows quickly",
+      "body": [
+        "Now a million photos arrive each day at 2 MB each: 2 TB a day, or about 730 TB in a year. The database, its replicas, and backups all grow. Restoring it can take days, and each new replica must copy all the files. Photo views also travel through app servers and the database. Large files can push useful rows out of database memory and slow queries for captions and likes."
+      ],
+      "callout": "Databases are designed to search and update records. Sending megabytes of file data through them adds work."
+    },
+    {
+      "title": "Store files separately from their details",
+      "body": [
+        "Move file bytes to <span class=\"term\">object storage</span>, such as Amazon S3, Google Cloud Storage, or Azure Blob Storage. Store each file under a key, such as <code>photos/9f2c.jpg</code>. The app uses <code>PUT</code> to save it and <code>GET</code> to retrieve it. Object storage does not provide database queries or joins, but it can hold very large collections of files and costs less per terabyte than database disks. Providers still set limits for individual objects. Keep a small database row for each photo’s key, owner, size, and file type."
+      ],
+      "callout": "A common design keeps file details in a database and the file bytes in object storage, connected by the object key."
+    },
+    {
+      "title": "Do not relay large uploads through app servers",
+      "body": [
+        "If uploads pass through the app servers on their way to storage, a 2 GB video from a phone can hold a server connection and memory open for minutes. The servers must then be sized for network traffic, not just application work. A burst of video uploads can slow page loads for everyone."
+      ],
+      "callout": "If a server only passes along bytes without inspecting them, it may be an expensive middle step."
+    },
+    {
+      "title": "Upload directly to storage",
+      "body": [
+        "The app can give the phone temporary permission to upload directly. The phone asks to upload a 2 GB video. The app checks the user, creates a <code>pending</code> database row, and returns a <span class=\"term\">presigned URL</span>: a link signed by the app that allows one upload to one key for 15 minutes. The phone sends the file directly to object storage. When the upload finishes, storage sends an event and the app changes the row to <code>uploaded</code>."
+      ],
+      "callout": "The signed URL can limit file type and size, so it cannot be reused to upload arbitrary files to your bucket."
+    },
+    {
+      "title": "Send large files in parts",
+      "body": [
+        "A 2 GB upload over a phone connection may fail before it finishes. A <span class=\"term\">multipart upload</span> splits the file into smaller parts, such as 10 MB each. The phone sends the parts separately, often in parallel, using temporary signed links. If one part fails, only that part needs to be sent again. If the connection drops, the upload can resume from the parts already received. When all parts arrive, storage joins them into one file."
+      ],
+      "callout": "Parallel parts can also use a network link better. Automatically remove abandoned uploads so their stored parts do not keep costing money."
+    },
+    {
+      "title": "Prepare files for people to use",
+      "body": [
+        "An uploaded original is rarely the only version an app needs. Put each “upload complete” event on a queue (see <em>Message Queues</em>). Workers create thumbnails and photo sizes, scan for malware, and remove GPS location from photo metadata before sharing. They can also convert videos into several resolutions. When finished, a worker saves the new files and marks the row <code>ready</code>. Before that, the app can show “processing…”."
+      ],
+      "callout": "Do not trust the file type or size reported by the phone. Workers should check the actual file and its contents."
+    },
+    {
+      "title": "Serve downloads from a CDN",
+      "body": [
+        "People download photos far more often than they upload them, so downloads should not pass through app servers either. Put a <b>CDN</b> in front of object storage. The first viewer in a city fetches a copy from storage to a nearby edge server; later viewers in that city get the copy from the edge. Give each version a different key, such as <code>photos/9f2c_w640.webp</code>, so it can be cached for a year without serving an old version."
+      ],
+      "callout": "For private photos, the app can issue a short-lived signed CDN URL. This is like a presigned upload URL, but it grants temporary permission to download."
+    },
+    {
+      "title": "Let the video player adjust quality",
+      "body": [
+        "A video is too large to download before playback, and a viewer’s network speed can change. Split the video into segments a few seconds long. Encode each segment at several qualities, from 240p to 1080p, and create a small playlist that lists them. The player downloads segments from the CDN and picks a quality for the next one based on how quickly the last segment arrived. If a train enters a tunnel, the player can switch to 360p instead of freezing. This is <span class=\"term\">adaptive bitrate streaming</span>, such as HLS or DASH."
+      ],
+      "callout": "Short segments can be cached separately at CDN edges, which helps popular videos load quickly."
+    },
+    {
+      "title": "Keep file rows and objects in sync",
+      "body": [
+        "The database and object storage can disagree. A phone may lose its connection after getting a presigned URL, leaving a <code>pending</code> row forever. Or deleting a photo may remove its database row but leave its files stored and reachable. Use a status on each row. Storage events advance the status; deletes remove the row first and queue file deletion. A nightly <b>cleanup job</b> can remove pending rows older than a day and files that no row refers to."
+      ],
+      "callout": "Data deletion may be required by laws that apply to your service. Make sure deletion reaches every copy, including resized files, video versions, backups, and CDN caches."
+    },
+    {
+      "title": "Move old files to cheaper storage",
+      "body": [
+        "Many photos are viewed often during their first few weeks, then rarely. Object stores offer <b>storage classes</b>: standard storage for frequently read files, lower-cost options for infrequent reads, and archive options that cost much less but may charge more or take minutes to hours to retrieve. A <span class=\"term\">lifecycle rule</span> can move original photos to an archive tier after 90 days while keeping the smaller versions people still browse in standard storage."
+      ],
+      "callout": "Cheap storage can have expensive or slow reads. Check how often files are actually accessed before archiving them."
+    },
+    {
+      "title": "Keep the storage bucket private",
+      "body": [
+        "A developer makes the bucket public so images will display. Later, someone discovers they can list and download every photo, including private images and originals that contain location data. Keep buckets private and block public access at the account level. Serve files through a CDN with signed URLs. Give each service a key that can access only its own paths. Use hard-to-guess object names as an extra layer, not the only protection."
+      ],
+      "callout": "A random key is not access control. If a URL is enough to read a private file, make the URL expire."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Keep file <b>bytes</b> in object storage and their <b>details</b> in the database, joined by an object key.</li><li>Let phones upload directly with <b>presigned URLs</b>. Send large files in parts that can be retried or resumed.</li><li><b>Workers</b> create thumbnails and video versions, and remove data that should not be shared.</li><li>Serve files through a <b>CDN</b> with versioned keys; stream video in adaptive segments.</li><li>Keep database rows and files in sync, move old files to cheaper storage, and keep buckets private.</li></ul>"
+      ],
+      "callout": "That completes Data &amp; Storage. Next: <b>Communication</b> — how services talk to each other."
+    }
+  ]
+}

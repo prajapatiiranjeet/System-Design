@@ -1,0 +1,78 @@
+{
+  "summary": "Keep frequently requested answers in faster storage so the database does less repeated work.",
+  "goals": [
+    "Why repeated reads can overload a database",
+    "How the cache-aside pattern works",
+    "Why the cache hit rate matters",
+    "How to handle stale data, expiration, and eviction",
+    "How to prevent stampedes and repeated misses"
+  ],
+  "steps": [
+    {
+      "callout": "Databases can be hard to scale because they hold the source data. A cache can reduce work that does not need to be repeated."
+    },
+    {
+      "callout": "Many systems have a few very popular items and many items that are rarely read."
+    },
+    {
+      "body": [
+        "Add an in-memory <span class=\"term\">cache</span>, such as Redis or Memcached. The server checks the cache first. A <b>hit</b> returns the saved answer in about a millisecond. On a <b>miss</b> (amber), the server reads from the database and saves a copy in the cache for next time. This is the <span class=\"term\">cache-aside</span> pattern."
+      ],
+      "callout": "A cache reads an answer from memory, without running the original database query. It can often be 10–100 times faster than that query."
+    },
+    {
+      "body": [
+        "The <span class=\"term\">hit rate</span> is the share of reads answered by the cache. A miss takes much longer, so a small change in hit rate can matter. In this example, increasing hits from 80% to 95% cuts average read time by more than half and database load by three-quarters."
+      ],
+      "callout": "Cache the right data, provide enough memory, and keep entries long enough for them to be reused."
+    },
+    {
+      "callout": "A cache is a second copy of the data. Keeping that copy current is one of the main challenges of caching."
+    },
+    {
+      "body": [
+        "When data changes, the server writes it to the database and deletes the cached copy. The next read misses and loads the new value. As a backup, each cache entry has a <span class=\"term\">TTL</span> (time to live): stale data disappears when the timer runs out. Why delete instead of overwriting the cache? Two writes can race, and the older value could arrive last. Deleting is safer because the next read fetches the latest database value."
+      ],
+      "callout": "Choose a TTL based on how long stale data is acceptable: perhaps seconds for prices and stock, or hours for a product description."
+    },
+    {
+      "body": [
+        "A cache cannot hold everything because memory costs money. When it fills up, it must remove entries to make room. A common rule is <span class=\"term\">LRU</span> (least recently used): remove the entry that has gone the longest without being read. A common alternative is <span class=\"term\">LFU</span> (least frequently used): remove the entry that has been read the fewest times. LFU can help when a short burst of unusual reads would push out the usual popular items."
+      ],
+      "callout": "The cache may need to hold only the most popular data. For example, 10% of the data might serve 90% of reads."
+    },
+    {
+      "body": [
+        "The home page is the hottest cache key, with 2,000 reads per second. Its TTL expires. Now all those requests miss and ask the database for the same answer. The database was at 8% load; the rush of identical queries makes it stall. This is a <span class=\"term\">cache stampede</span>, also called a thundering herd."
+      ],
+      "callout": "A very popular key is most likely to cause a rush of requests when its cache entry expires."
+    },
+    {
+      "body": [
+        "Use <span class=\"term\">request coalescing</span>: the first request after a miss fetches the answer, while the others wait briefly and share that result. Also refresh popular keys shortly before they expire. Add random <b>jitter</b> to TTLs so many entries do not expire at the same moment."
+      ],
+      "callout": "Some libraries call request coalescing “single-flight.” CDNs use a similar approach called request collapsing."
+    },
+    {
+      "body": [
+        "A crawler—or an attacker—requests product IDs that do not exist: <code>/product/99900017</code>, then <code>…18</code> and <code>…19</code>. Each request misses the cache and asks the database, which finds no row. Because the cache stores no answer, every request is a miss, even if repeated. This is called <span class=\"term\">cache penetration</span>."
+      ],
+      "callout": "A cache-aside system can also remember “not found.” If it does not, the database must repeat the same unsuccessful lookup."
+    },
+    {
+      "body": [
+        "First, use <span class=\"term\">negative caching</span>: store “not found” for a short time, so repeated requests for the same missing ID stop at the cache. A crawler may request a new ID each time. For that, keep a <span class=\"term\">Bloom filter</span> of valid IDs in server memory. This compact structure can say “definitely not present” or “possibly present.” Reject impossible IDs without asking the cache or database."
+      ],
+      "callout": "A Bloom filter does not mistakenly reject an item that exists, but it can say “possibly present” for an item that is missing. Here, a 1% false-positive rate uses about 10 bits per key."
+    },
+    {
+      "callout": "The closer a cache is to the user, the faster it can answer. But nearby copies can be harder to update when the source data changes."
+    },
+    {
+      "body": [
+        "<ul class=\"takeaways\"><li>Cache answers that are <b>read often and change rarely</b>.</li><li><b>Cache-aside</b>: check the cache, read from the database on a miss, then fill the cache.</li><li>The <b>hit rate</b> affects speed and database load.</li><li>Plan for stale data: <b>delete cached copies after writes</b>, set a <b>TTL</b>, and make room with <b>LRU</b>.</li><li>Protect popular keys from <b>stampedes</b> by sharing one fetch and refreshing before expiry.</li><li>Cache <b>“not found”</b> results and use a <b>Bloom filter</b> to screen impossible IDs.</li></ul>"
+      ],
+      "callout": "Next: <b>Content Delivery</b> — cache files on servers around the world, closer to users."
+    }
+  ]
+}

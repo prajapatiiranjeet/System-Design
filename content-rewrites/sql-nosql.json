@@ -1,0 +1,82 @@
+{
+  "summary": "Compare relational tables, documents, and key–value databases, and learn when each shape fits.",
+  "goals": [
+    "How tables, joins, and transactions work",
+    "Why relational databases can become harder to scale",
+    "How document and key–value stores organize data",
+    "How to choose a database for each kind of data",
+    "When a specialist search engine can help"
+  ],
+  "steps": [
+    {
+      "title": "Store related data in tables",
+      "body": [
+        "Many apps start with a <span class=\"term\">relational database</span>, often called a SQL database, such as PostgreSQL or MySQL. It stores data in tables with named columns and a defined <span class=\"term\">schema</span>—the rules for what fields each row can contain. Tables can refer to one another using keys. A <b>join</b> combines related rows, such as each order with the customer’s name."
+      ],
+      "callout": "SQL databases have mature tools and support. If you are unsure, a relational database is often a safe starting point."
+    },
+    {
+      "title": "Keep related changes together",
+      "body": [
+        "Moving $50 from Ana’s account to Ben’s takes two updates: subtract $50 from Ana, then add $50 to Ben. If the server crashes between them, the money could disappear. A <span class=\"term\">transaction</span> groups both updates so they both happen or neither happens. Relational databases provide this with the <b>ACID</b> properties, which help protect payments, orders, and inventory."
+      ],
+      "callout": "ACID means <b>Atomic</b> (all or nothing), <b>Consistent</b> (rules stay true), <b>Isolated</b> (unfinished changes are hidden), and <b>Durable</b> (a confirmed change is saved)."
+    },
+    {
+      "title": "As one table grows",
+      "body": [
+        "Now the product catalog goes into the same database. Shoes have sizes, laptops have CPUs, and books have authors. One products table may need hundreds of columns, many empty for most products. Adding a new product type can require a <span class=\"term\">migration</span>: a change to the database structure. On a table with 400 million rows, some migrations can rewrite or lock the table for hours. All writes still go through one database server."
+      ],
+      "callout": "At large scale, two common pressure points are changing a rigid table structure and relying on one server for all writes."
+    },
+    {
+      "title": "Keep each product in a document",
+      "body": [
+        "A <span class=\"term\">document store</span>, such as MongoDB, saves each record as a self-contained document. A shoe and a laptop can have different fields, so adding a product type may not require a database migration. The trade-off is that application code must handle all the different document shapes it has saved. Since one product’s details stay together, reading it can take one fetch. Documents can also be spread across multiple servers."
+      ],
+      "callout": "Document stores fit data you usually read or write as one whole object, such as a product, profile, or article."
+    },
+    {
+      "title": "Look up a value by key",
+      "body": [
+        "A <span class=\"term\">key–value store</span>, such as Redis or DynamoDB, maps each key to a value. It has no joins and little or no query language: the app gets or sets a value by key, often in about a millisecond. Since each key can stand alone, the data is relatively easy to split across many servers."
+      ],
+      "callout": "Key–value stores fit sessions, carts, feature flags, or counters that the app fetches by one ID."
+    },
+    {
+      "title": "Understand the trade-offs",
+      "body": [
+        "Some NoSQL databases are easy to scale out partly because they offer fewer built-in features: joins across records, transactions across many records, or strict consistency may be limited. <table class=\"compare\"><thead><tr><th></th><th>SQL</th><th>NoSQL</th></tr></thead><tbody><tr><td>Data shape</td><td>Fixed tables</td><td>Often flexible</td></tr><tr><td>Joins</td><td>Built in</td><td>Often handled by your code</td></tr><tr><td>Transactions</td><td>Can cover many rows</td><td>Often limited to one record</td></tr><tr><td>Scaling writes</td><td>Can be harder</td><td>Often built in</td></tr></tbody></table>These are common patterns, not rules. PostgreSQL can store JSON documents; MongoDB and DynamoDB support transactions across multiple records; distributed SQL databases such as Spanner and CockroachDB can scale writes while keeping joins and transactions, with added latency and complexity."
+      ],
+      "callout": "Choosing NoSQL before you need it can mean rebuilding joins and transactions in application code."
+    },
+    {
+      "title": "Use the database that fits the data",
+      "body": [
+        "Real systems often combine database types. This is called <span class=\"term\">polyglot persistence</span>. For example, keep money and orders in a relational database for transactions, product details in a document store, and sessions in a key–value store. Start with one database and add another only when a kind of data has a clear need."
+      ],
+      "callout": "Ask what the data needs: relationships, flexible fields, or a fast lookup by key."
+    },
+    {
+      "title": "Search product descriptions",
+      "body": [
+        "A shopper types “red running shoes.” A SQL query such as <code>WHERE name LIKE '%red%'</code> can be slow over millions of rows. It also does not rank results, handle typos, or match “shoe” with “shoes.” A <span class=\"term\">search engine</span>, such as Elasticsearch or OpenSearch, builds an <span class=\"term\">inverted index</span>: for each word, it stores a list of documents that contain it. A stream of database changes updates this search index."
+      ],
+      "callout": "The search index is a copy, not the source of truth. You can rebuild it from the main database."
+    },
+    {
+      "title": "Add specialist stores only when needed",
+      "body": [
+        "A search engine is one example of a store built for a particular kind of work. Other specialized databases can be much better at one workload and worse at others. Add one when measurements show that a workload does not fit your current database. Each extra store takes work to run, secure, back up, and keep in sync."
+      ],
+      "callout": "Many systems work well with one relational database for years. Add specialist databases one at a time for a measured need."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li><b>SQL databases</b> use tables and support joins and transactions; they are a safe default.</li><li><b>Document stores</b> keep flexible, self-contained records.</li><li><b>Key–value stores</b> look up a value by its key.</li><li>Choose a database to fit the data; one system may use several.</li><li>A <b>search index</b> is a copy fed from the source of truth.</li></ul>"
+      ],
+      "callout": "Next: <b>Indexes</b> — why one query can take two seconds or two milliseconds."
+    }
+  ]
+}

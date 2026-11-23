@@ -1,0 +1,75 @@
+{
+  "summary": "Split data across machines when one database can no longer hold it or handle its writes.",
+  "goals": [
+    "Why replicas do not increase write capacity",
+    "How range and hash shard keys divide data",
+    "How hot keys overload one shard",
+    "Why queries across shards cost more",
+    "Why adding a shard can move data"
+  ],
+  "steps": [
+    {
+      "title": "One machine is too small",
+      "body": [
+        "The users database is 20 TB and handles 40,000 writes each second. Followers can help with reads, but every write still goes through one leader and all data must fit on its disks. The largest machine is already in use. Copying all that data for a backup, restore, or new replica now takes most of a day."
+      ],
+      "callout": "Replication copies data. To spread writes and storage, split the data itself."
+    },
+    {
+      "title": "Split the database into shards",
+      "body": [
+        "<span class=\"term\">Sharding</span> divides one large database into smaller databases called <b>shards</b>. Each shard stores part of the data and handles writes for that part. A <span class=\"term\">shard key</span> decides where each row goes. Here, rows are grouped by user ID range. The app or a router checks the range and sends a query to the right shard."
+      ],
+      "callout": "Shards are usually replicated too: shards spread writes; followers within each shard spread reads and help survive failures."
+    },
+    {
+      "title": "Ranges can create hot spots",
+      "body": [
+        "User IDs increase over time, so new signups keep landing in the last range. If new users are the most active, shard D gets most of the writes while A is mostly idle. Dates and alphabetical names can create the same problem: newly arriving data piles onto one shard. Some range-partitioned databases, such as Bigtable, HBase, and CockroachDB, split busy ranges automatically. But if writes always go to the newest end, that last range can still be busiest."
+      ],
+      "callout": "Choose a shard key that spreads both the stored data and the requests."
+    },
+    {
+      "title": "Hash the shard key",
+      "body": [
+        "Instead of putting nearby IDs together, pass each ID through a <span class=\"term\">hash function</span>, which turns an input into a number that appears spread out. Then choose a shard with <code>hash(user_id) % 4</code>. Consecutive IDs now go to different shards, which helps spread signups and their traffic."
+      ],
+      "callout": "Hashing spreads IDs but makes range queries harder. “Find IDs 1–1000” may need to ask every shard. This is often a useful trade-off."
+    },
+    {
+      "title": "Case: one celebrity overloads a shard",
+      "body": [
+        "Hashing spreads keys evenly, but it cannot make one key less popular. A pop star with 50 million followers is stored on shard C, just like any other user. But every profile view and like for that star goes to C. C is overloaded while A, B, and D are fine. This is a <span class=\"term\">hot key</span>, also called the celebrity problem."
+      ],
+      "callout": "A shard key cannot spread requests for one single key across machines by itself."
+    },
+    {
+      "title": "Cache hot reads or split hot writes",
+      "body": [
+        "For a key with many <b>reads</b>, put a cache or several cache copies in front of its shard. Then most profile views do not reach the shard. For a key with many <b>writes</b>, such as a celebrity’s like counter, split it into smaller keys: write to <code>likes:42#0</code> through <code>likes:42#7</code> at random across shards, then add them up when reading."
+      ],
+      "callout": "Social networks and ticketing systems often detect their most popular keys and handle those keys separately."
+    },
+    {
+      "title": "A query may need every shard",
+      "body": [
+        "Finding one user is fast: hash the ID and ask one shard. But “show the top 10 users by follower count” is not based on the user ID, so the app asks <b>every</b> shard and combines the answers. This is called <span class=\"term\">scatter–gather</span>. The query waits for the slowest shard, and joining data stored on different shards is difficult."
+      ],
+      "callout": "Choose a shard key that matches important queries, so a query can often go to just one shard."
+    },
+    {
+      "title": "Adding a shard moves many rows",
+      "body": [
+        "The shards fill up, so you add a fifth. But changing <code>hash % 4</code> to <code>hash % 5</code> changes the destination for about 80% of users. Terabytes of data must move between shards while the system continues serving traffic."
+      ],
+      "callout": "With <code>hash % N</code>, changing N reshuffles most keys. Consistent hashing, the next lesson, reduces how many move."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li><b>Sharding</b> splits stored data and writes across machines.</li><li>The <b>shard key</b> chooses where each row lives; it should spread data and requests.</li><li><b>Ranges</b> can create hot spots. <b>Hashes</b> spread keys but make range lookups touch more shards.</li><li>Cache hot reads or split writes for a <b>hot key</b>.</li><li>Queries that do not match the shard key may ask <b>every shard</b>. Changing <code>% N</code> moves most rows.</li></ul>"
+      ],
+      "callout": "Next: <b>Consistent Hashing</b> — add or remove a shard while moving only some of the keys."
+    }
+  ]
+}

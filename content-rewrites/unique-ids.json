@@ -1,0 +1,96 @@
+{
+  "summary": "Give every row a unique name across many servers without making all inserts wait for one counter.",
+  "goals": [
+    "Why a database counter stops working after sharding",
+    "How ticket services and ID blocks work",
+    "Why random UUIDs affect database indexes",
+    "How UUID v7 and Snowflake create time-sortable IDs",
+    "What clock changes and public IDs can reveal"
+  ],
+  "steps": [
+    {
+      "title": "Give each row a unique ID",
+      "body": [
+        "Orders, users, and payments each need an <b>identifier</b> that is unique across the system. Other rows may refer to it; it can appear in a URL or be read to support staff. With one database, an <code>AUTO_INCREMENT</code> or <code>SERIAL</code> column can hand out 1001, 1002, 1003, and so on, without repeating an ID."
+      ],
+      "callout": "A counter also gives small IDs that sort by creation time. Each alternative keeps some of these benefits and gives up others."
+    },
+    {
+      "title": "Two shards, two counters",
+      "body": [
+        "The orders table is now split across database shards. Each shard has its own counter, and both have just issued ID <b>1004</b>. Two orders now share an ID. A link to <code>/orders/1004</code>, a cache entry, or a refund could refer to either one. The same collision would cause problems if shards were later merged or split again."
+      ],
+      "callout": "IDs must be unique across the whole system, not just within one server."
+    },
+    {
+      "title": "Use one service to issue IDs",
+      "body": [
+        "Move the counter to a small <span class=\"term\">ticket server</span> whose job is to hand out the next number. Before inserting a row, an app server asks it for an ID. IDs stay unique and roughly sorted by time, but every insert adds a network round trip. If the ticket server is unavailable, new rows cannot be created."
+      ],
+      "callout": "Flickr used two ticket servers: one issued odd IDs and one even IDs. Either could fail while the other kept issuing IDs."
+    },
+    {
+      "title": "Reserve blocks of IDs",
+      "body": [
+        "Instead of asking for one number at a time, each app server reserves a <b>block</b> of 1,000 IDs in one request and then uses them from memory. That is one round trip per thousand inserts, and a server can continue for a while if the ticket server is down. IDs from different servers may not follow exact creation order. A crashed server can also leave unused IDs in its block, creating gaps."
+      ],
+      "callout": "Gaps are usually harmless. If invoice numbers must have no gaps by law, use a separate deliberate process; do not rely on ordinary IDs for that."
+    },
+    {
+      "title": "Generate a random UUID",
+      "body": [
+        "A <span class=\"term\">UUID</span> (universally unique identifier) version 4 uses 122 random bits. Any server, phone, or script can create one without asking another service. Two IDs could match in theory, but a collision is extraordinarily unlikely: at a billion UUIDs each second, it would take about 86 years to reach a 50% chance of any repeat."
+      ],
+      "callout": "A UUID is 128 bits—twice the size of a typical 64-bit ID. IDs are copied into indexes and other rows, so that larger size uses more storage."
+    },
+    {
+      "title": "Random IDs scatter index writes",
+      "body": [
+        "A primary-key index is often a B-tree sorted by ID (see <em>Indexes</em>). Counter IDs go to the last page, which can stay in memory. Random IDs can land on any page. Once the index is too large for memory, inserts may need to read cold pages from disk and split pages in many parts of the tree. Inserts can become several times slower, and pages may be left half empty."
+      ],
+      "callout": "This effect is strongest when the table itself is stored in primary-key order, as in MySQL InnoDB and SQL Server, but random IDs can affect any B-tree."
+    },
+    {
+      "title": "Put a timestamp at the front",
+      "body": [
+        "Keep the ID unique, but put a timestamp before its random bits. <span class=\"term\">UUID v7</span> stores a 48-bit millisecond timestamp first; <span class=\"term\">ULID</span> is a similar time-sortable ID. New IDs sort roughly by creation time, so inserts tend to go to the right-hand end of the index. They do not need a central counter."
+      ],
+      "callout": "For UUID primary keys, UUID v7 is often a better fit for indexes than UUID v4. Use a generator with monotonic behavior if IDs created in the same millisecond must also sort in creation order. UUID v4 is useful when random, hard-to-guess IDs are needed."
+    },
+    {
+      "title": "Pack time and machine into a Snowflake ID",
+      "body": [
+        "Twitter needed IDs that fit in 64 bits, sort by time, and could be made many times per second without a central counter. Its <span class=\"term\">Snowflake</span> design puts three fields in one number: a timestamp in milliseconds, the ID generator’s machine ID, and a sequence number for IDs created during that millisecond. Different machines have different machine IDs; one machine increments its sequence so it does not reuse a number."
+      ],
+      "callout": "A machine can make 4,096 IDs per millisecond in the example format. Discord, Instagram, and others use similar designs with different bit allocations."
+    },
+    {
+      "title": "Protect against a clock moving backward",
+      "body": [
+        "Snowflake IDs use the machine’s clock. If time sync corrects a clock that was two seconds fast by moving it backward, the machine could reuse timestamps and issue duplicate IDs. A generator can remember the last timestamp it used and wait—or refuse to issue IDs—until the clock catches up."
+      ],
+      "callout": "Two machines must not share the same machine ID either. Assign IDs from one place, such as a configuration service, or derive them from another unique value."
+    },
+    {
+      "title": "IDs can reveal information",
+      "body": [
+        "IDs often appear in URLs, where people can read them. If a competitor sees order #1004 on Monday and #1250 on Tuesday, they can estimate that you handled about 246 orders in between. Sequential IDs are also easy to guess: changing <code>/invoices/1004</code> to <code>/invoices/1005</code> may reveal another record. A timestamp in an ID can reveal when it was created."
+      ],
+      "callout": "Use a separate random public ID if you need to hide order volume or timing. Still check authorization on every request (see <em>Authorization</em>): an ID that is hard to guess does not grant access."
+    },
+    {
+      "title": "Choose an ID for the job",
+      "body": [
+        "<table class=\"compare\"><thead><tr><th></th><th>Size</th><th>Time-sorted</th><th>Needs</th></tr></thead><tbody><tr><td><b>DB counter</b></td><td>64 bits</td><td>Yes</td><td>One database</td></tr><tr><td><b>Ticket blocks</b></td><td>64 bits</td><td>Roughly</td><td>A ticket service</td></tr><tr><td><b>UUID v4</b></td><td>128 bits</td><td>No</td><td>Nothing</td></tr><tr><td><b>UUID v7</b></td><td>128 bits</td><td>Roughly</td><td>A clock</td></tr><tr><td><b>Snowflake</b></td><td>64 bits</td><td>Yes</td><td>Machine IDs + clock</td></tr></tbody></table>For one database, use its counter. For many independent writers, UUID v7 avoids a central service. For compact numeric IDs at high volume, Snowflake is an option."
+      ],
+      "callout": "There is no best ID for every system. Choose the size, ordering, coordination, and privacy properties you need."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>A database counter stops being unique when several shards issue IDs independently.</li><li>A <b>ticket server</b> restores one shared counter; blocks reduce the number of requests to that service.</li><li><b>UUID v4</b> needs no coordination but scatters index writes. <b>UUID v7</b> puts a timestamp first, so it sorts roughly by time.</li><li><b>Snowflake</b> combines a timestamp, machine ID, and sequence in a 64-bit ID. Protect it from clock rollback.</li><li>IDs can reveal volume and timing. They are never a substitute for authorization checks.</li></ul>"
+      ],
+      "callout": "Next: <b>CAP &amp; Consistency</b> — what copies of data should do when the network between them breaks."
+    }
+  ]
+}

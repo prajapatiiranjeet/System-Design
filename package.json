@@ -1,0 +1,9 @@
+{
+  "name": "system-design-interactive-course",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.mjs"
+  }
+}

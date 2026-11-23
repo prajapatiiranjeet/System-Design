@@ -1,0 +1,57 @@
+{
+  "summary": "Serve shared files from servers near users to reduce distance and protect the origin.",
+  "goals": [
+    "Why users far from a server experience more delay",
+    "How edge servers cache static files",
+    "How cold caches and versioned names affect updates",
+    "How a CDN helps protect the origin",
+    "When to keep personal pages out of a CDN cache"
+  ],
+  "steps": [
+    {
+      "callout": "Light takes time to travel. To reduce distance-related delay, serve content from a location closer to the user."
+    },
+    {
+      "callout": "Images, scripts, stylesheets, and videos are often static files: the same for many users and changed infrequently."
+    },
+    {
+      "body": [
+        "A <span class=\"term\">CDN</span> (content delivery network) has <span class=\"term\">edge servers</span> in many cities. Point static files to the CDN, and users can get them from a nearby edge. London now gets images in about 10 ms. Only cache misses (amber) need to travel back to the origin in Virginia."
+      ],
+      "callout": "Common CDNs include Cloudflare, Fastly, Akamai, and Amazon CloudFront. You use their edge servers instead of running your own."
+    },
+    {
+      "callout": "A CDN edge is a <b>pull-through cache</b>: it fetches a file from the origin when first asked, saves a copy, and serves later requests from that copy."
+    },
+    {
+      "callout": "A long TTL (time to live) keeps files in the CDN longer and makes it faster. But users may keep seeing an old version until the cache expires or is cleared."
+    },
+    {
+      "body": [
+        "Put a fingerprint of the file contents in its name, such as <code>logo.3f9a.png</code>. A changed logo gets a different name, so the CDN cannot mistake it for the old file. Now the file can be cached for a <b>year</b>. The HTML can use a short TTL or skip caching, and point to the latest file names."
+      ],
+      "callout": "Build tools such as Vite and webpack can add these content fingerprints to file names."
+    },
+    {
+      "callout": "A CDN is a cache spread across many locations. It can serve traffic spikes at the edge and reduce the load on your origin."
+    },
+    {
+      "body": [
+        "A configuration change tells the CDN to cache every page for five minutes. Bob opens his cart, and the edge saves it. Alice opens her cart a second later, and the edge sends her Bob’s cart. Pages that depend on the user must be marked <code>Cache-Control: private</code> (or <code>no-store</code>), so the CDN does not serve one person’s page to another."
+      ],
+      "callout": "Treat personal pages as private by default. Cache public content only when you intend to."
+    },
+    {
+      "body": [
+        "A CDN can have hundreds of edge servers. If a new file becomes popular, every edge may miss and request the same file from the origin at once. An <span class=\"term\">origin shield</span> is a cache between the edge servers and the origin. Edges ask the shield; the shield asks the origin, reducing duplicate fetches."
+      ],
+      "callout": "Many CDNs offer an origin shield setting. Choose one near your origin."
+    },
+    {
+      "body": [
+        "<ul class=\"takeaways\"><li>Distance adds delay; <b>edge servers</b> place content closer to users.</li><li>CDNs are <b>pull-through caches</b>: an edge fetches files from the origin when it misses.</li><li><b>Versioned file names</b> let you cache for a long time while still publishing new versions.</li><li>Edges can absorb traffic spikes and reduce load on the origin.</li><li>Do not publicly cache <b>personal pages</b>; an <b>origin shield</b> can reduce duplicate fetches.</li></ul>"
+      ],
+      "callout": "That wraps up Scaling. Next: <b>Data & Storage</b>, starting with SQL vs NoSQL."
+    }
+  ]
+}

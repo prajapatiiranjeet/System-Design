@@ -1,0 +1,104 @@
+{
+  "summary": "Learn how databases protect shared records when several requests read and change them at once.",
+  "goals": [
+    "How read-then-write races can sell the same item twice",
+    "How row locks and atomic updates prevent races",
+    "How version checks and isolation levels work",
+    "What phantom rows and write skew mean",
+    "How deadlocks happen and how constraints help",
+    "How short transactions can use expiring holds"
+  ],
+  "steps": [
+    {
+      "title": "There is one seat left",
+      "body": [
+        "Ana and Ben both want the last concert seat. Their requests reach different app servers, which share one database. The booking code reads how many seats are left, then writes a booking if the answer is one."
+      ],
+      "callout": "Each request works correctly on its own. The bug appears only when both requests run at the same time."
+    },
+    {
+      "title": "Both requests book it",
+      "body": [
+        "Both servers read “1 seat left” before either writes. Both decide the seat is free, both create a booking, and both send a confirmation. One seat has two tickets. This is a <span class=\"term\">race condition</span>: the outcome depends on which request runs first. In this example, one write overwrites the other’s update to the count."
+      ],
+      "callout": "Races can be hard to reproduce in tests and appear in production when traffic is high, such as during a ticket sale."
+    },
+    {
+      "title": "A transaction alone is not enough",
+      "body": [
+        "Put the read and write inside <code>BEGIN … COMMIT</code> so they happen together or not at all. But that alone may not prevent two bookings. At the common <b>read committed</b> isolation level, both transactions can read the latest confirmed value, which is still 1 before either commits. <span class=\"term\">Isolation</span> controls what concurrent transactions can see of each other."
+      ],
+      "callout": "ACID’s “I” has different levels. Check your database’s default: PostgreSQL and SQL Server use read committed; MySQL uses repeatable read."
+    },
+    {
+      "title": "Lock the row while you decide",
+      "body": [
+        "Read the seat with <code>SELECT … FOR UPDATE</code>. Ana’s transaction locks row 7. When Ben tries to lock the same row, the database makes him wait. After Ana commits, Ben reads the updated value, 0, and tells the user the seat is sold out."
+      ],
+      "callout": "A lock stays in place until the transaction commits. Keep transactions short; do not wait for a user or a payment service while holding a lock."
+    },
+    {
+      "title": "Check and change in one statement",
+      "body": [
+        "Often the database can check and update the value in one atomic operation: <code>UPDATE seats SET left = left − 1 WHERE id = 7 AND left > 0</code>. Then check how many rows changed. One means the user got the seat; zero means it was already gone."
+      ],
+      "callout": "A single conditional update is often a safe way to change counters, stock, or balances. There is no gap between checking and changing."
+    },
+    {
+      "title": "Use a version number instead of a lock",
+      "body": [
+        "Locks are <em>pessimistic</em>: they assume a conflict may happen, so other requests wait. <span class=\"term\">Optimistic concurrency</span> assumes conflicts are rare. Read the row and its version, then write with <code>… WHERE id = 7 AND version = 8</code>, changing the version to 9. If another request changed it first, no row matches. Reload the new value and try again. Other users do not have to wait for a lock."
+      ],
+      "callout": "This works well when someone edits a document, profile, or cart over time. Holding a lock for minutes would block other users."
+    },
+    {
+      "title": "Choose an isolation level",
+      "body": [
+        "Databases offer several <span class=\"term\">isolation levels</span>. Stronger levels prevent more unexpected results, but may make requests wait or abort. <table class=\"compare\"><thead><tr><th></th><th>Prevents</th><th>Cost</th></tr></thead><tbody><tr><td><b>Read committed</b></td><td>Dirty reads</td><td>Lowest</td></tr><tr><td><b>Snapshot / repeatable read</b></td><td>Changing reads; lost updates in some databases<sup>1</sup></td><td>Some aborts</td></tr><tr><td><b>Serializable</b></td><td>Anomalies, as if transactions ran one at a time</td><td>More aborts and retries</td></tr></tbody></table><small><sup>1</sup> PostgreSQL aborts the second writer; MySQL repeatable read may allow the lost update. Database versions with the same level name can behave differently, so check the documentation.</small>"
+      ],
+      "callout": "At serializable isolation, a database may abort a transaction instead of allowing an unsafe result. The application must catch the error and retry."
+    },
+    {
+      "title": "Locking a missing row does not work",
+      "body": [
+        "A new booking flow checks the bookings table: “Is seat 7 booked? No—insert a row.” Both transactions use <code>FOR UPDATE</code>, but there is no row to lock yet. Both see nothing and both insert, so the seat is double-booked. A row that appears after the check is a <span class=\"term\">phantom</span>. <span class=\"term\">Write skew</span> is when concurrent transactions make decisions from what they read, then write changes that together break a rule."
+      ],
+      "callout": "Possible fixes are serializable isolation, locking an existing parent row such as the seat, or adding a unique constraint."
+    },
+    {
+      "title": "Two requests can deadlock",
+      "body": [
+        "Ana transfers money from account A to B. She locks A, then asks to lock B. At the same time, Ben transfers from B to A. He locks B, then asks for A. Each is waiting for the other, so neither can continue. This is a <span class=\"term\">deadlock</span>. The database detects the cycle and aborts one transaction; that request can then retry."
+      ],
+      "callout": "Take locks in the same order, such as lowest account ID first. Then the requests cannot wait on each other in a cycle."
+    },
+    {
+      "title": "Let the database enforce the rule",
+      "body": [
+        "Application code changes, and a future booking path may forget to lock the seat. Let the database enforce the rule with a <span class=\"term\">unique constraint</span> on <code>(concert, seat)</code>. It rejects a second booking for the same seat with a duplicate-key error, regardless of which code path tried it."
+      ],
+      "callout": "Use constraints for important rules: unique values, valid foreign keys, or checks such as balance ≥ 0. They still apply when application code has a bug."
+    },
+    {
+      "title": "Do not hold a lock during payment",
+      "body": [
+        "To avoid a double booking, someone puts the card payment inside the booking transaction: lock seat 7, call the payment provider, then commit. The provider takes three seconds. During that time the seat stays locked, other buyers wait, and each waiting request holds a database connection. On a busy sale, the connection pool can run out and the whole site can stall."
+      ],
+      "callout": "Do not wait for a slow service, user, or email while holding a database lock or an open transaction."
+    },
+    {
+      "title": "Use an expiring hold",
+      "body": [
+        "Split the booking into short transactions. First, mark seat 7 as <b>held for Ana until 12:10</b> and commit. Ana pays outside the transaction. Then a second transaction marks the seat <b>sold</b>. If she does not pay, a cleanup job releases the seat after the hold expires. Ben learns at once that the seat is taken; no lock is held while Ana pays."
+      ],
+      "callout": "Ticket and airline sites often reserve a seat for a few minutes. An expiring hold replaces a long-running database lock."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Reading a value and then writing later can cause races when requests overlap.</li><li>Use <b>row locks</b>, one <b>atomic update</b>, or a <b>version check</b>.</li><li>Isolation levels trade stronger guarantees for waiting and retries.</li><li>Take locks in a consistent order and back important rules with <b>constraints</b>.</li><li>Keep transactions <b>short</b>. Use expiring holds instead of locking while waiting for payment.</li></ul>"
+      ],
+      "callout": "Next: <b>Files &amp; Media</b> — where photos and videos go instead of the database, and how they move through the system."
+    }
+  ]
+}

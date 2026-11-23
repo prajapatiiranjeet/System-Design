@@ -1,0 +1,66 @@
+{
+  "summary": "Protect data in transit and at rest, and keep the keys and credentials safe.",
+  "goals": [
+    "How TLS and certificates protect network traffic",
+    "Why to encrypt inside a data center and on disk",
+    "How key rotation works",
+    "How to keep secrets out of source code",
+    "When tokenization or end-to-end encryption helps"
+  ],
+  "steps": [
+    {
+      "callout": "Anyone along the network path can read or alter traffic that is not encrypted."
+    },
+    {
+      "body": [
+        "With HTTPS, <span class=\"term\">TLS</span> encrypts data between Alice’s browser and the site. During setup, the server presents a <b>certificate</b> signed by a trusted certificate authority. The browser uses it to check that the server belongs to <code>shop.example</code>. A person copying the network packets sees encrypted data and cannot quietly change it."
+      ]
+    },
+    {
+      "callout": "Short-lived certificates encourage automation and limit how long a leaked key can be used."
+    },
+    {
+      "body": [
+        "The load balancer <b>terminates</b> TLS: it decrypts the browser’s traffic. Some systems then sent plain traffic to internal services. With <b>mutual TLS</b> (mTLS), both services present certificates. Each network hop is encrypted, and both sides check the other’s identity."
+      ]
+    },
+    {
+      "callout": "Encryption in transit protects network traffic. A copied backup also needs protection."
+    },
+    {
+      "body": [
+        "Encrypt database files, disks, and backups. Keep the keys separate from the data. A <span class=\"term\">key management service</span> (KMS) controls a master key. With <b>envelope encryption</b>, the app encrypts data with a data key, then encrypts that data key with the KMS master key. KMS access can be restricted and logged."
+      ]
+    },
+    {
+      "body": [
+        "Change keys on a schedule or if one may have leaked. Re-encrypting terabytes can take days. With envelope encryption, create a new master key and <b>re-wrap</b> each small data key with it. The large data itself does not need to be encrypted again."
+      ]
+    },
+    {
+      "body": [
+        "A developer puts the payment API key in source code, and the repository is public. Automated scanners can find it quickly. Deleting the line does not remove it from the repository history. Revoke the exposed key and issue a replacement."
+      ]
+    },
+    {
+      "body": [
+        "Keep credentials out of code. The app proves its identity to a <span class=\"term\">secrets manager</span> and retrieves only the secrets it needs. Rotate secrets or issue short-lived ones. CI scanners can block commits that look like credentials."
+      ]
+    },
+    {
+      "body": [
+        "Handling card data can bring systems into the scope of <b>PCI DSS</b> requirements. Instead of storing the card number, send it to a payment provider. The provider stores it and returns a <span class=\"term\">token</span>, such as <code>tok_4f2c</code>. Your database, logs, and analytics store only the token."
+      ]
+    },
+    {
+      "body": [
+        "With <span class=\"term\">end-to-end encryption</span>, Alice’s device encrypts a message so only Bob’s device can decrypt it. The chat server stores and forwards encrypted text. A server breach does not reveal message contents. Real protocols use keys to agree on fresh secret keys; <b>forward secrecy</b> means a later stolen key cannot unlock older messages."
+      ]
+    },
+    {
+      "body": [
+        "<ul class=\"takeaways\"><li>Use <b>TLS</b> for outside connections and <b>mTLS</b> between services when needed.</li><li>Encrypt stored data and keep keys in a separate <b>KMS</b>.</li><li>Automate certificate renewal; rotate keys by re-wrapping data keys.</li><li>Keep credentials in a <b>secrets manager</b>, rotate them, and scan for leaks.</li><li>Use <b>tokens</b> instead of storing sensitive values such as card numbers.</li><li>Use <b>end-to-end encryption</b> when the server should not read messages.</li></ul>"
+      ]
+    }
+  ]
+}

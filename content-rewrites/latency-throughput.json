@@ -1,0 +1,91 @@
+{
+  "summary": "Learn two ways to measure speed, and why busy servers can become slow before reaching their limit.",
+  "goals": [
+    "Tell the time for one request apart from the number completed each second.",
+    "See why response time rises quickly when a server is almost full.",
+    "Understand p50 and p99 response times.",
+    "See why network distance adds a lower limit to response time.",
+    "Learn how work in progress, fan-out, and batching affect a system."
+  ],
+  "steps": [
+    {
+      "title": "Two ways to measure speed",
+      "body": [
+        "<span class=\"term\">Latency</span> is how long one request takes to get an answer. Watch one dot travel to the server and back.",
+        "<span class=\"term\">Throughput</span> is how many requests the system completes each second. Count the dots."
+      ],
+      "callout": "Think of a highway: latency is how long one trip takes; throughput is how many cars pass in an hour. More lanes can move more cars, but they do not make one car’s trip faster when the road is empty."
+    },
+    {
+      "title": "More users, same server",
+      "body": [
+        "Traffic grows seven times. Throughput also rises, so the server is still keeping up. It is now busy 70% of the time: it handles 350 requests each second out of a capacity of about 500.",
+        "Some requests now wait in line before the server can work on them. That wait is part of latency."
+      ],
+      "callout": "<span class=\"term\">Utilization</span> is the share of time a server is busy. At 70% utilization, a new request will often arrive while the server is already working."
+    },
+    {
+      "title": "Latency rises sharply near the limit",
+      "body": [
+        "Traffic grows by another third, and the server is now busy 96% of the time. It handles 480 requests per second, just below its limit of 500. Throughput rises a little, but the queue grows quickly and the slowest requests take seven times longer.",
+        "Requests do not arrive at perfectly even intervals. When the server has spare capacity, it can catch up after a burst. With only 4% spare, new requests keep joining a line that is already long."
+      ],
+      "callout": "Latency rises slowly, then can jump near full utilization. A common target is to keep the server around 60–70% busy at peak and leave the rest as headroom for bursts."
+    },
+    {
+      "title": "The average hides slow requests",
+      "body": [
+        "At 70% utilization, most requests are quick, but a few wait behind slower work. The average is about 180 milliseconds, which hides how long those slower requests take.",
+        "We also measure <span class=\"term\">percentiles</span>. <b>p50</b> is the time that half of requests meet or beat. <b>p99</b> is the time that 99 out of 100 requests meet or beat; about 1 in 100 takes longer."
+      ],
+      "callout": "A page can make 30 requests. If each has a 1% chance of being slow, about 26% of page loads will include at least one slow request. The slow end of the range matters to users."
+    },
+    {
+      "title": "Add capacity to reduce waiting",
+      "body": [
+        "Double the server’s cores. The same 350 requests per second now use about 35% of its capacity. The queue drains, and both p50 and p99 latency fall.",
+        "Throughput stays the same because demand has not changed. The extra capacity gives the server room to handle bursts."
+      ],
+      "callout": "To reduce latency under load, lower utilization by adding capacity or doing less work for each request."
+    },
+    {
+      "title": "Distance adds latency",
+      "body": [
+        "Move the server across an ocean. The server itself is just as fast, but the messages have farther to travel, so every round trip takes longer.",
+        "Light in fiber travels about 200 kilometers per millisecond. New York and London are about 5,600 kilometers apart, so one round trip cannot be faster than about 56 milliseconds. In practice it is closer to 75 milliseconds."
+      ],
+      "callout": "No server upgrade can beat the travel time. To reduce this delay, place a copy of the data closer to users with caches, CDNs, or servers in more regions."
+    },
+    {
+      "title": "Little’s Law: count the work in progress",
+      "body": [
+        "<span class=\"term\">Little’s Law</span> links throughput, latency, and the number of requests being handled: <b>requests in flight = throughput × latency</b>. At 350 requests per second and 0.12 seconds each, about 42 requests are in flight at once.",
+        "Each in-flight request uses resources such as a thread, connection, or memory. If latency grows to one second while throughput stays at 350 requests per second, about 350 requests are in flight. A pool sized for 50 can run out."
+      ],
+      "callout": "Use this relationship to estimate thread, connection, and worker capacity. It also shows why a slow service can use up resources while requests wait."
+    },
+    {
+      "title": "One request waits for many servers",
+      "body": [
+        "A search page asks 100 index servers at the same time and waits for the slowest answer. Each server is fast 99% of the time, but with 100 servers there is a high chance that at least one is slow.",
+        "About 63% of searches wait for a server’s p99 response: 1 − 0.99¹⁰⁰ ≈ 63%. A delay that is rare for one server can be common for the whole page."
+      ],
+      "callout": "A <span class=\"term\">hedged request</span> sends a second copy to a replica if the first server has not answered by a chosen time, such as its p95. Use whichever answer arrives first."
+    },
+    {
+      "title": "Batch work to increase throughput",
+      "body": [
+        "Writing analytics events one row at a time lets the database insert about 2,000 rows per second. Much of the cost is the overhead of starting each write.",
+        "Instead, collect up to 100 events for at most 50 milliseconds and write them together. Throughput rises to about 50,000 rows per second, but each event may wait up to 50 milliseconds before the write."
+      ],
+      "callout": "Batching trades a little more latency for higher throughput. It works well for logs, analytics, and bulk imports, but not for an action where a user is waiting for an immediate answer."
+    },
+    {
+      "title": "Recap: measure both kinds of speed",
+      "body": [
+        "<ul class=\"takeaways\"><li><b>Latency</b> is time per request. <b>Throughput</b> is requests completed per second.</li><li>Latency can jump as utilization nears 100%; keep <b>headroom</b>.</li><li>Watch <b>p99</b> as well as the average, because users notice the slow requests.</li><li><b>Distance</b> adds travel time that a faster server cannot remove.</li><li><b>Requests in flight = throughput × latency</b>. A request that fans out can make rare slow responses common.</li></ul>"
+      ],
+      "callout": "Next: Napkin Math shows how to make rough capacity estimates before building a system."
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "summary": "Analyze huge amounts of event data in large batches or continuously as it arrives.",
+  "goals": [
+    "Keep large analytics scans off the production database",
+    "How batch jobs split work with MapReduce",
+    "How to handle uneven or very popular keys",
+    "How stream processing and time windows work",
+    "How to handle late events, lag, and partitions",
+    "How approximate counts and batch-stream combinations work"
+  ],
+  "steps": [
+    {
+      "title": "Analytics can slow the live app",
+      "body": [
+        "Every video view creates a row in the production database—about two billion rows each day. A dashboard recalculates views per video every minute with a large <code>GROUP BY</code> query. Each run scans more of the day’s data. By mid-morning, it may read hundreds of millions of rows and compete with the database work that serves the app."
+      ],
+      "callout": "Production databases are tuned for many small, quick queries. Large scans use their memory, CPU, and disk."
+    },
+    {
+      "title": "Batch: collect first, calculate later",
+      "body": [
+        "Instead, save each view as an event in inexpensive <b>object storage</b>. Once per night, a <span class=\"term\">batch job</span> reads the day’s files, calculates counts using several worker machines, and writes the results to an analytics <b>warehouse</b>. The dashboard reads from the warehouse. The production database can focus on the app again."
+      ],
+      "callout": "Batch jobs are simple and easy to rerun. If a job has a bug, fix it and process the same files again."
+    },
+    {
+      "title": "Split a batch job into three parts",
+      "body": [
+        "Two billion events take too long for one machine, so split the work. <b>Map</b>: each worker reads a portion of the files and counts views by video. <b>Shuffle</b>: send counts for the same video to one worker. <b>Reduce</b>: that worker adds the counts. Adding workers can make the job finish faster. This pattern is called <span class=\"term\">MapReduce</span>."
+      ],
+      "callout": "Spark, BigQuery, and Snowflake use this kind of parallel work, often behind a SQL interface."
+    },
+    {
+      "title": "One popular video can slow the job",
+      "body": [
+        "One video went viral and got 40% of yesterday’s views. During the shuffle, all of those views go to the same reducer. That worker spends three hours on the video while the other 99 finish in five minutes. The whole job waits for the slowest worker. Splitting by key only balances work when the keys have similar amounts of data."
+      ],
+      "callout": "Uneven key sizes are called <b>skew</b>. Look for one task that takes much longer than the rest."
+    },
+    {
+      "title": "Combine counts before sending them",
+      "body": [
+        "A <span class=\"term\">combiner</span> adds counts on each mapper first. Instead of sending 800 million separate “view of 4f2” rows, each mapper sends one partial count. For a key that is still too popular, use <span class=\"term\">salting</span>: split it into keys such as <code>4f2#0</code> through <code>4f2#9</code> and send them to ten reducers. A final step adds the ten totals. Here the job drops from three hours to about 20 minutes."
+      ],
+      "callout": "Spark and many SQL engines combine sums and counts automatically. They can also detect and split skewed keys in joins."
+    },
+    {
+      "title": "Some results cannot wait until tomorrow",
+      "body": [
+        "A video going viral should appear in “Trending” now, not tomorrow. A bot farm faking views should be caught within minutes. Running the batch job every hour helps, but each run still rereads a large amount of data."
+      ],
+      "callout": "Batch processing answers “what happened?” Some products also need to know “what is happening?”"
+    },
+    {
+      "title": "Process events as they arrive",
+      "body": [
+        "The app publishes each view to an <b>event stream</b>, such as Kafka. A <span class=\"term\">stream processor</span>, such as Flink, Kafka Streams, or Spark Streaming, reads events as they arrive, keeps running counts, and writes results to a fast store. The dashboard can now be seconds behind instead of a day."
+      ],
+      "callout": "The processor keeps its current counts as local state and saves checkpoints. After a crash, it can resume from the latest checkpoint instead of starting over."
+    },
+    {
+      "title": "Count events in time windows",
+      "body": [
+        "A stream does not end, so “count views” needs a time range called a <span class=\"term\">window</span>. <b>Tumbling windows</b> divide time into fixed blocks, such as views per minute. <b>Sliding windows</b> overlap, such as the last 10 minutes updated every minute. A sudden increase between windows may show a trend—or fraud."
+      ],
+      "callout": "<b>Session windows</b> group events by bursts of activity. They can help answer questions such as “how long did people watch?”"
+    },
+    {
+      "title": "Handle events that arrive late or twice",
+      "body": [
+        "A phone watches videos in the subway without a signal, then uploads its views two hours later. Should each view count at 12:04, when it happened, or now, when it arrived? A flaky connection may also send the same event twice. Stream processors use <b>event time</b> (when it happened), a <span class=\"term\">watermark</span> (a signal for when a time window is complete enough to publish), a rule for late events, and event IDs to drop duplicates."
+      ],
+      "callout": "“Exactly once” usually means checkpoints and safe, repeatable writes prevent duplicate effects. This is the same challenge as queue processing."
+    },
+    {
+      "title": "A processor can fall behind",
+      "body": [
+        "A celebrity’s live stream triples traffic for an hour. The processor cannot keep up, so unprocessed events accumulate. This is <span class=\"term\">consumer lag</span>. Here lag reaches four minutes and 18 million events. The stream still has the events, but the “live” dashboard is four minutes old and fraud checks run late."
+      ],
+      "callout": "Consumer lag is a key health measure for a stream. Alert on how many events or seconds behind the processor is."
+    },
+    {
+      "title": "Add processors across partitions",
+      "body": [
+        "Split the stream into <b>partitions</b>, for example by video ID, so events for one video stay in order. Each processor instance handles some partitions. Adding another processor increases parallel work. In this example, two processors handle two partitions each; the backlog drains and lag falls to seconds. An autoscaler can add processors when lag grows."
+      ],
+      "callout": "The number of partitions limits parallel processing. Create enough partitions for future growth; adding them later can move keys between partitions."
+    },
+    {
+      "title": "Estimate unique viewers",
+      "body": [
+        "Counting all views is simple. Counting <b>unique</b> viewers exactly means remembering every viewer ID. One popular video may have 50 million IDs—about 800 MB of memory for one video in one time window. A <span class=\"term\">HyperLogLog</span> sketch estimates the number of distinct IDs using about 12 KB, with around 1% error. Sketches from different machines or windows can be merged."
+      ],
+      "callout": "Approximate algorithms such as HyperLogLog, count-min sketch, and t-digest trade a small amount of precision for large savings. Dashboards rarely need perfect counts."
+    },
+    {
+      "title": "Run batch and stream together",
+      "body": [
+        "Some systems use both: a stream gives fast, approximate answers, and a nightly batch recomputes exact counts from the full log. This is the <b>lambda architecture</b>. Other systems use only the stream and replay the saved event log through a new processor to rebuild results. This is the <b>kappa architecture</b>. <table class=\"compare\"><thead><tr><th></th><th>Batch</th><th>Stream</th></tr></thead><tbody><tr><td>Freshness</td><td>Hours</td><td>Seconds</td></tr><tr><td>Complexity</td><td>Low</td><td>Higher</td></tr><tr><td>Rerun</td><td>Easy</td><td>Replay the log</td></tr></tbody></table>"
+      ],
+      "callout": "Start with batch unless you clearly need results within seconds. Add streaming for the results that do."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Keep heavy analytics scans <b>off the production database</b>.</li><li><b>Batch</b> jobs process finished data cheaply; results may be hours old.</li><li><b>Stream</b> processors handle events as they arrive; results can be seconds old, with more parts to manage.</li><li>Watch for <b>skew</b> and <b>consumer lag</b>; use combiners, salting, partitions, and processors as needed.</li><li>Plan for <b>late</b> and <b>duplicate</b> events. Many systems use batch and stream processing together.</li></ul>"
+      ],
+      "callout": "That completes Architecture. Next: <b>Security</b> — starting with authentication."
+    }
+  ]
+}

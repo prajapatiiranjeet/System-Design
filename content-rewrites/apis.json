@@ -1,0 +1,82 @@
+{
+  "summary": "Compare REST, GraphQL, and RPC: three ways for programs to request data and actions.",
+  "goals": [
+    "What an API contract promises",
+    "How REST resources and HTTP verbs work",
+    "How GraphQL requests only selected fields",
+    "How services use RPC to call each other",
+    "How to page through lists and change APIs safely"
+  ],
+  "steps": [
+    {
+      "title": "Programs need an agreement",
+      "body": [
+        "A mobile app shows a profile with a name, avatar, recent posts, and follower count. That data is on the server, so the app needs a way to request it. An <span class=\"term\">API</span> is the agreed contract: which addresses exist, what the app sends, and what the server returns. Here the app sends JSON over HTTPS."
+      ],
+      "callout": "An API is a promise to its users. Once apps depend on it, changes must avoid breaking them."
+    },
+    {
+      "title": "REST: resources and HTTP actions",
+      "body": [
+        "<span class=\"term\">REST</span> organizes data as <b>resources</b> with addresses, such as <code>/users/42</code> or <code>/users/42/posts</code>. HTTP verbs say what to do: <code>GET</code> reads, <code>POST</code> creates, <code>PUT</code> or <code>PATCH</code> updates, and <code>DELETE</code> removes. This style is simple and works with many tools. Browsers and CDNs can cache many <code>GET</code> responses. <code>GET</code>, <code>PUT</code>, and <code>DELETE</code> are usually <span class=\"term\">idempotent</span>: repeating them has the same result as doing them once. <code>POST</code> may create another item each time, which matters when retrying."
+      ],
+      "callout": "HTTP status codes describe the result: 200 OK, 201 Created, 404 Not Found, 429 Too Many Requests, or 500 server error."
+    },
+    {
+      "title": "Too many calls and too much data",
+      "body": [
+        "On a phone, each network round trip may take about 100 ms. The app makes three requests one after another. Some requests may need an ID from an earlier response, so they cannot run at the same time. Each API response also returns a whole object: 48 KB arrive even though the screen needs about 3 KB. This is <span class=\"term\">over-fetching</span>. Needing several requests to get the data for one screen is <span class=\"term\">under-fetching</span>."
+      ],
+      "callout": "Extra round trips and unused data hurt most on slow networks, which is common for mobile users."
+    },
+    {
+      "title": "GraphQL asks for selected fields",
+      "body": [
+        "With <span class=\"term\">GraphQL</span>, the app sends one query describing the fields it wants. A GraphQL server fetches those fields from the services behind it and returns them in one response. In the diagram, one request goes from the phone, splits between Users and Posts services, then returns as one response."
+      ],
+      "callout": "GraphQL can help when iOS, Android, web, or TV clients need different fields from the same backend."
+    },
+    {
+      "title": "Flexible queries need limits",
+      "body": [
+        "Clients can ask for any data allowed by the schema, including followers of followers and all of their posts. A deeply nested request can overload the Users service. GraphQL queries are often sent as <code>POST</code> requests to one URL, so ordinary HTTP caches and CDNs cannot cache them without extra work, such as persisted queries."
+      ],
+      "callout": "Production GraphQL APIs should limit query depth and cost. They may also allow only approved, or “persisted,” queries."
+    },
+    {
+      "title": "Call internal services with RPC",
+      "body": [
+        "Services inside a data center often call one another using <span class=\"term\">RPC</span> (remote procedure call). The caller invokes a function on another machine, much like calling a local function. A common option is <b>gRPC</b>. Both sides use a typed schema, often Protocol Buffers, and generated code. The messages are compact binary data sent over HTTP/2."
+      ],
+      "callout": "gRPC is fast, typed, and supports streaming. Browsers usually need a gRPC-Web proxy, so it is more common between internal services."
+    },
+    {
+      "title": "Split a long list into pages",
+      "body": [
+        "A celebrity may have two million followers. Returning the whole list would take hundreds of megabytes and a long time. APIs split long lists into <b>pages</b>. An offset request such as <code>?offset=40000&amp;limit=20</code> is easy to read, but the database may still skip 40,000 rows. A <span class=\"term\">cursor</span> can say “return the 20 entries after ID 9f3c.” An index can jump to that point, and new items are less likely to make the list skip or repeat entries."
+      ],
+      "callout": "Return the cursor for the next page. The app sends it back in its next request."
+    },
+    {
+      "title": "Keep old apps working",
+      "body": [
+        "A code cleanup renames <code>name</code> to <code>display_name</code>. The new app works, but many phones still use an older version and their profile screens now fail. You cannot force every phone to update. Evolve APIs by adding the new field and keeping the old one until it is no longer used. For a breaking change, publish a new version such as <code>/v2/</code> and run both versions."
+      ],
+      "callout": "Every public API field is a promise. Measure which clients still use a field before removing or renaming it."
+    },
+    {
+      "title": "Choose the API style",
+      "body": [
+        "<table class=\"compare\"><thead><tr><th></th><th>Best for</th><th>Watch out</th></tr></thead><tbody><tr><td><b>REST</b></td><td>Public APIs, simple read, create, update, and delete operations; caching</td><td>May need many calls per screen</td></tr><tr><td><b>GraphQL</b></td><td>Many clients with different screens</td><td>Expensive queries and caching</td></tr><tr><td><b>gRPC</b></td><td>Calls between services</td><td>Browsers need a proxy</td></tr></tbody></table>Systems can mix styles: use REST or GraphQL for client apps and gRPC between internal services."
+      ],
+      "callout": "Whichever style you use, add fields instead of changing or removing fields that existing clients may depend on."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>An <b>API</b> is an agreement between programs.</li><li><b>REST</b> uses resources and HTTP verbs. It is simple and cacheable, but a screen may need several calls.</li><li><b>GraphQL</b> lets clients request selected fields in one query; limit expensive queries.</li><li><b>gRPC</b> provides fast, typed calls between services.</li><li>Use <b>cursors</b> for long lists and evolve APIs without breaking old clients.</li></ul>"
+      ],
+      "callout": "Next: <b>Message Queues</b> — handle work without making the user wait for it."
+    }
+  ]
+}

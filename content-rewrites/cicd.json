@@ -1,0 +1,63 @@
+{
+  "summary": "Build, test, and release changes in small steps, with a quick way to roll back.",
+  "goals": [
+    "How continuous integration checks each change",
+    "How one tested artifact moves between environments",
+    "How blue-green and canary releases work",
+    "How to change a database while old code still runs",
+    "How feature flags separate deployment from release"
+  ],
+  "steps": [
+    {
+      "callout": "Large, infrequent releases can feel safer, but many changes at once are harder to test, diagnose, and undo."
+    },
+    {
+      "callout": "Builds that depend on one person’s computer and deployments that cannot be repeated exactly make every release an experiment."
+    },
+    {
+      "body": [
+        "Every push to the shared repository starts a <span class=\"term\">pipeline</span> on a clean machine. It builds the code and runs tests. The team merges small changes into <code>main</code> often and fixes a failed pipeline before adding more work. Keeping <code>main</code> buildable and tested is <span class=\"term\">continuous integration</span>."
+      ]
+    },
+    {
+      "body": [
+        "The pipeline packages the result as an <b>immutable artifact</b>, often a container image tagged with its source commit. It stores the image in a registry. Test and deploy that same image in staging and production; only configuration changes."
+      ]
+    },
+    {
+      "body": [
+        "Passing images deploy to <b>staging</b>, a small copy of production, where smoke tests check main user flows. With <span class=\"term\">continuous delivery</span>, a person can release the tested change. With continuous <b>deployment</b>, every passing change goes to production automatically."
+      ]
+    },
+    {
+      "body": [
+        "With <span class=\"term\">blue-green deployment</span>, blue serves the current version while green starts the new version and warms up. A load balancer switches traffic to green. If something goes wrong, switch back to blue, which is still running."
+      ]
+    },
+    {
+      "body": [
+        "A <span class=\"term\">canary</span> sends a small share of real traffic to the new version. Compare its errors and latency with the old version. If it is worse, roll it back while few users are affected. If healthy, increase its share gradually."
+      ]
+    },
+    {
+      "body": [
+        "Version 42 renames database column <code>name</code> to <code>full_name</code>. Old servers still expect <code>name</code>, so they fail during rollout. Use <span class=\"term\">expand and contract</span>: add the new column and write both; copy existing values; switch reads; remove the old column only when no running code uses it. Each step works with old and new versions."
+      ]
+    },
+    {
+      "body": [
+        "A <span class=\"term\">feature flag</span> controls who sees a feature, separately from deploying its code. Turn it on for the team, then 1% of users, then everyone. If it causes problems, switch it off without a new deployment. Remove old flags after release so they do not leave unused branches behind."
+      ]
+    },
+    {
+      "body": [
+        "The <span class=\"term\">DORA metrics</span> measure how often a team deploys, how long changes take to reach production, how many deployments cause problems, and how quickly the team restores service. These measures help teams discuss both delivery speed and stability."
+      ]
+    },
+    {
+      "body": [
+        "<ul class=\"takeaways\"><li><b>Continuous integration</b>: merge small changes often and build and test every push on a clean machine.</li><li><b>Build once</b>: promote the same immutable artifact through every environment.</li><li><b>Continuous delivery</b> keeps passing changes ready for production; continuous deployment releases them automatically.</li><li>Use <b>blue-green</b> to switch back, <b>canaries</b> to limit exposure, and <b>feature flags</b> to separate deploy from release.</li><li>Keep database changes compatible with old and new code: expand, migrate, then contract.</li></ul>"
+      ]
+    }
+  ]
+}

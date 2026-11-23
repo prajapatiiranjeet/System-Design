@@ -1,0 +1,75 @@
+{
+  "summary": "Use metrics, logs, and traces to find what is wrong, where it happens, and why.",
+  "goals": [
+    "Why “it is slow” is hard to diagnose",
+    "How RED metrics and dashboards narrow the search",
+    "How SLOs and error budgets guide alerts",
+    "How logs and traces tell a request’s story",
+    "How to respond to incidents and learn from them"
+  ],
+  "steps": [
+    {
+      "title": "“Checkout is slow.” Where?",
+      "body": [
+        "Support tickets say checkout takes several seconds. A checkout request touches the gateway, orders, inventory, payments, a database, and a fraud-check service. The diagram shows the request waiting somewhere, but the team cannot see where. Every server’s CPU looks fine, so nobody knows where to start."
+      ],
+      "callout": "If users find a problem before your team does, you are missing useful visibility into the system."
+    },
+    {
+      "title": "Measure requests over time",
+      "body": [
+        "Each service records numbers about the requests it handles using the <span class=\"term\">RED method</span>: <b>Rate</b> (requests per second), <b>Errors</b> (share that failed), and <b>Duration</b> (how long they take, including percentiles). Send these measurements to a time-series database and dashboard. Now the team can see that inventory and the database are fast; payments is slow."
+      ],
+      "callout": "Common tools include Prometheus and Grafana, Datadog, and CloudWatch. Watch p99 as well as the average. For machines, USE means utilization, saturation, and errors."
+    },
+    {
+      "title": "Alert on user-facing problems",
+      "body": [
+        "An alert for “CPU above 80%” may fire often without showing that users have a problem. Alert on symptoms users notice. An <span class=\"term\">SLI</span> is a service-level indicator, such as the share of checkouts that finish in under one second. An <span class=\"term\">SLO</span> is the target for that indicator, such as 99.9%. An <span class=\"term\">error budget</span> is the amount of failure allowed by that target. Alert when the system is using that budget too quickly."
+      ],
+      "callout": "An error budget gives reliability and feature work a shared measure. While the budget remains, teams can ship; when it is used up, they focus on reliability."
+    },
+    {
+      "title": "Logs tell what happened",
+      "body": [
+        "Metrics show <em>where</em> a problem occurs; <span class=\"term\">logs</span> record <em>what happened</em>. Each service writes events with a timestamp. But at thousands of requests per second, lines from different requests mix together. Give each request an ID at the gateway, pass it through the services, and add it to every log line. Then filter by that ID to see one request’s story."
+      ],
+      "callout": "Write structured logs, such as JSON, instead of unstructured text so you can filter by request ID, user, service, or status."
+    },
+    {
+      "title": "Trace one request across services",
+      "body": [
+        "A <span class=\"term\">distributed trace</span> records each step, or <b>span</b>, of one request. A span has a start time and duration; spans share a trace ID. Shown as a timeline, the trace reveals where time was spent. Here, the request takes 2.4 seconds and waits 2.1 seconds for the external fraud service."
+      ],
+      "callout": "OpenTelemetry can collect traces. Jaeger, Tempo, Honeycomb, and Datadog can help explore them. Instrument once and reuse the data."
+    },
+    {
+      "title": "Fix the cause and check the result",
+      "body": [
+        "Now that the team knows the cause, it can set a 300 ms timeout for fraud checks, cache recent scores, and review rare slow requests later. The dashboards show whether it worked: p99 falls from 2.4 seconds to 310 ms, and the SLO alert clears. Finding the cause took minutes instead of hours."
+      ],
+      "callout": "Metrics show that something is wrong, traces show where, and logs help explain why. You need all three."
+    },
+    {
+      "title": "Respond to an error spike",
+      "body": [
+        "At 03:12, an alert shows checkout errors rising from 0.1% to 6%. The dashboard points to inventory. The deployment log shows a configuration change there at 03:10. First reduce the impact: roll back the change and restore service. Investigate the root cause after users can check out again."
+      ],
+      "callout": "Show deployments and configuration changes on dashboards. “What changed?” is often the first incident question."
+    },
+    {
+      "title": "Learn with a post-mortem",
+      "body": [
+        "After the incident, the team writes a <span class=\"term\">post-mortem</span>: what happened over time, the impact, the root cause, and actions to prevent a repeat. It is <b>blameless</b>: ask how the system allowed a mistake through, not who made it. Here, configuration changes will use the same canary rollout as code."
+      ],
+      "callout": "Incidents can teach the team how to improve the system. Good post-mortems help prevent the same failure from happening again."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li><b>Metrics</b> such as rate, errors, and duration show where things are slow or failing.</li><li>Alert on <b>SLOs</b>, which reflect what users experience, not only raw CPU use.</li><li><b>Logs</b> with a request ID show what one request did.</li><li><b>Traces</b> follow a request across services and show where time went.</li><li>During an incident, <b>reduce the impact first</b>, then write a blameless post-mortem.</li></ul>Instrument before an outage; that is the wrong time to add logging."
+      ],
+      "callout": "That completes Reliability. Next: <b>Architecture</b> — starting with monoliths and microservices."
+    }
+  ]
+}

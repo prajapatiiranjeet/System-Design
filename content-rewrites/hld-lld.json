@@ -1,0 +1,67 @@
+{
+  "summary": "Look at a system from two distances: how its services fit together and how one service works inside.",
+  "goals": [
+    "What high-level design decides",
+    "What low-level design decides",
+    "How contracts connect the two levels",
+    "How to move through a design session"
+  ],
+  "steps": [
+    {
+      "title": "One system, two levels of detail",
+      "body": [
+        "Consider a food-delivery app. From far away, it has a few services—Orders, Couriers, and Payments—with their own data. They communicate through an API gateway and events. Up close, each box is a program with classes, database tables, and rules. These are <span class=\"term\">high-level design</span> (HLD) and <span class=\"term\">low-level design</span> (LLD)."
+      ],
+      "callout": "Neither level is more real. They answer different questions for different readers and change at different speeds."
+    },
+    {
+      "title": "High-level design is the map",
+      "body": [
+        "HLD decides what the main parts are and how they connect: which services exist, what data each owns, how they communicate, and what happens when traffic grows or a component fails. The course so far has mostly worked at this level. Its main output is a diagram with the reasons for each choice."
+      ],
+      "callout": "A useful HLD can fit on one page. Detailed explanations of one box belong in that component’s LLD."
+    },
+    {
+      "title": "Explain the trade-offs in the map",
+      "body": [
+        "Placing an order should not wait for a courier to be found, so Orders publishes an event for Couriers to process later. Payments needs transactions, so it uses a relational database. Courier locations change every few seconds and create tens of thousands of writes each second, so they use a fast key–value store that can overwrite old locations. Each choice follows from the data and workload."
+      ],
+      "callout": "Every connection and data store on an HLD diagram is a choice with alternatives. Be ready to explain what the choice gives up."
+    },
+    {
+      "title": "Low-level design opens one box",
+      "body": [
+        "Now zoom into the Orders service. LLD decides how that component is built: its modules or classes, the interfaces between them, its database tables and indexes, its algorithms, and how it handles errors. A controller accepts HTTP requests, an order service applies business rules, a repository talks to the database, and a client calls Payments."
+      ],
+      "callout": "Small interfaces around databases and other services make the main logic easier to test. See <em>Testing</em>."
+    },
+    {
+      "title": "Define states, data, and edge cases",
+      "body": [
+        "An order moves through states. The design must say which changes are allowed: it can be cancelled while <code>placed</code> or <code>paid</code>, but not after the kitchen starts. LLD also defines table columns and types, plus an index on <code>(user_id, created_at)</code> for “my orders.” It decides what to do if the payment call times out or the same order arrives twice."
+      ],
+      "callout": "Many production bugs come from an unhandled state change, a missing index, or a retry that charges twice."
+    },
+    {
+      "title": "Contracts connect the two levels",
+      "body": [
+        "HLD defines what a service promises at its edge: its API and the events it publishes. LLD decides how the service keeps that promise. This lets teams change code inside the service as long as <code>POST /orders</code> and <code>OrderPlaced</code> keep the same meaning."
+      ],
+      "callout": "Changing a contract affects other teams. Old and new versions may need to work side by side for a while. See API versioning."
+    },
+    {
+      "title": "Design from the outside in",
+      "body": [
+        "In an interview, one candidate may spend 20 minutes on class diagrams and never mention that courier locations arrive 40,000 times a second. Another may draw clear service boxes but not explain how an order avoids a double charge. Work <b>top-down</b>: clarify requirements, estimate the load, outline the API and data, draw the HLD, then examine the few hardest parts in more detail."
+      ],
+      "callout": "A design session often follows: requirements → estimates → API → data model → HLD → deep dives → failure cases. The next walkthroughs use this order."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<table class=\"compare\"><thead><tr><th></th><th>HLD</th><th>LLD</th></tr></thead><tbody><tr><td>View</td><td>Whole system</td><td>One component</td></tr><tr><td>Parts</td><td>Services, stores, queues</td><td>Classes, tables, states</td></tr><tr><td>Decides</td><td>Connections and data locations</td><td>How each part works inside</td></tr><tr><td>Changes</td><td>Less often, with agreement</td><td>Often, within a team</td></tr></tbody></table>This course focuses on HLD and looks inside a component when a decision depends on it. LLD, including object-oriented design and design patterns, is a subject of its own."
+      ],
+      "callout": "Next: <b>Design a URL Shortener</b> — a complete walkthrough from a brief to a finished design."
+    }
+  ]
+}

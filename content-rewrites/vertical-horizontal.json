@@ -1,0 +1,101 @@
+{
+  "summary": "When one server gets overloaded, compare making it bigger with adding more servers.",
+  "goals": [
+    "Recognize the signs that a server is overloaded.",
+    "Learn when scaling up helps and where it stops helping.",
+    "Learn how scaling out adds capacity with more servers.",
+    "See how autoscaling follows regular demand and why sudden spikes need planning.",
+    "Understand why more servers need a load balancer."
+  ],
+  "steps": [
+    {
+      "title": "Begin with one server",
+      "body": [
+        "The app runs on one computer. Every request—opening a page or posting a photo—travels from the user’s device to that server and back.",
+        "With 100 users, the server has plenty of room. Its CPU is busy only about 1% of the time."
+      ],
+      "callout": "A server has limits for CPU, memory, disk, and network. Its <span class=\"term\">capacity</span> is how much work it can do before one of those resources becomes a limit."
+    },
+    {
+      "title": "A sudden jump in traffic",
+      "body": [
+        "A post becomes popular and traffic grows 120 times. This server can handle about 400 requests each second, but 480 arrive. Its CPU reaches 100%, requests wait in a queue, responses get slow, and some requests time out.",
+        "The app needs more capacity. There are two main ways to add it."
+      ],
+      "callout": "Overload often shows up as CPU near 100%, a growing queue, slower responses, and then timeouts."
+    },
+    {
+      "title": "Way 1: scale up",
+      "body": [
+        "Move the app to a bigger computer with more CPU cores, more memory, or faster disks. The app design stays the same, so the code usually needs no changes.",
+        "This is <span class=\"term\">vertical scaling</span>, also called <em>scaling up</em>."
+      ],
+      "callout": "Scaling up is often a simple first step: it needs no code changes and adds no new kind of component to operate. A machine with four times the capacity may cost about four times as much."
+    },
+    {
+      "title": "Scaling up has a limit",
+      "body": [
+        "Vertical scaling has a hardware limit. A workload that uses 16 cores well may not use 192 cores as well, because those cores share locks, memory, and a disk. Moving to a bigger machine can require a migration and restart, causing downtime. Large machines can also cost much more, and twice as many cores may not deliver twice as much throughput.",
+        "Moving to a new machine can require a restart and a migration, which may cause downtime."
+      ],
+      "callout": "Vertical scaling has a hardware limit. Large machines can also cost much more, and twice as many cores may not deliver twice as much throughput."
+    },
+    {
+      "title": "One server is one point of failure",
+      "body": [
+        "All users depend on this one machine. A bad software release, a full disk, or a power failure can take the whole app offline.",
+        "A component whose failure can stop the entire system is a <span class=\"term\">single point of failure</span> (SPOF)."
+      ],
+      "callout": "Even the biggest machine can fail. If everything depends on it, one failure can cause a full outage."
+    },
+    {
+      "title": "Way 2: scale out",
+      "body": [
+        "Run several medium-sized computers side by side. In this example, four servers each have 96 vCPUs and run the same app. If more capacity is needed, add another server. Medium-sized machines can offer good value, and there is no single-machine ceiling.",
+        "This is <span class=\"term\">horizontal scaling</span>, also called <em>scaling out</em>. Here, four servers provide twice the capacity of the largest single machine. If one fails, the other three can carry the load."
+      ],
+      "callout": "Four medium servers can offer more total capacity than the largest single server. If one fails, the remaining servers may still handle some traffic."
+    },
+    {
+      "title": "Capacity sits unused overnight",
+      "body": [
+        "Traffic changes through the day. At 8 p.m. the app needs all four servers. At 4 a.m. traffic is one tenth as high, and the servers are only 5% busy.",
+        "You still pay for peak capacity even when most of it is idle. Consumer apps often see a 3–10× difference between daily peak and quiet hours."
+      ],
+      "callout": "Consumer apps often have daily traffic peaks several times larger than their quiet hours."
+    },
+    {
+      "title": "Let autoscaling follow demand",
+      "body": [
+        "Because the servers can do the same work, an <span class=\"term\">autoscaler</span> can add or remove them based on demand. For example, it can try to keep average CPU use near 50%.",
+        "At night it scales in to two servers, keeping one extra in case of a failure. In the evening it scales back out. This reduces the time you pay for unused machines."
+      ],
+      "callout": "Autoscaling works when servers can take requests interchangeably and a load balancer sends traffic to them. The next lessons cover these ideas."
+    },
+    {
+      "title": "Case: a flash sale",
+      "body": [
+        "Two servers are handling traffic comfortably. A flash sale starts, and traffic grows five times in two minutes. The autoscaler starts new servers, but they take about three minutes to start and warm up.",
+        "During those minutes, the two existing servers can handle only about two-thirds of the requests. For a planned sale, add capacity before it starts. Keep spare capacity for surprise spikes."
+      ],
+      "callout": "Autoscaling reacts to demand after it appears. For known launches, sales, or broadcasts, start extra servers early."
+    },
+    {
+      "title": "Who sends each user to a server?",
+      "body": [
+        "Suppose each group of users is set up to contact one server directly. If Server B fails, the quarter of users assigned to it see errors—even though three healthy servers remain.",
+        "A client does not know which servers are healthy or busy. A component in front of the servers must choose where each request goes."
+      ],
+      "callout": "That component is a <b>load balancer</b>. It sends requests to healthy servers; the next lesson explains how."
+    },
+    {
+      "title": "Recap: scale up or scale out",
+      "body": [
+        "<table class=\"compare\"><thead><tr><th></th><th>Scale up</th><th>Scale out</th></tr></thead><tbody><tr><td>How</td><td>Bigger machine</td><td>More machines</td></tr><tr><td>Code changes</td><td>None</td><td>Some<sup>1</sup></td></tr><tr><td>Ceiling</td><td>Hardware limit</td><td>Practically none</td></tr><tr><td>Failure</td><td>Total outage</td><td>Partial<sup>2</sup></td></tr><tr><td>To grow</td><td>Migrate + restart</td><td>Add a server</td></tr><tr><td>Cost</td><td>Premium at the top</td><td>Linear</td></tr></tbody></table>",
+        "Scaling out also lets you <b>autoscale</b>: add servers for the evening peak and remove them at night.",
+        "<small><sup>1</sup> Servers must be interchangeable — see <em>Stateless Services</em>. <sup>2</sup> A load balancer can route around failed servers.</small>"
+      ],
+      "callout": "A common approach is to scale up while it is simple and affordable, then scale out when one machine is no longer enough."
+    }
+  ]
+}

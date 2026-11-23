@@ -1,0 +1,82 @@
+{
+  "summary": "Publish a fact once, then let interested services react without slowing the original request.",
+  "goals": [
+    "Why direct service calls create dependencies",
+    "How publishers, topics, and subscribers work",
+    "How a queue differs from a topic",
+    "What event-driven design costs",
+    "How an outbox and replay protect events"
+  ],
+  "steps": [
+    {
+      "title": "Checkout calls several services",
+      "body": [
+        "When a customer places an order, four things must happen: send a confirmation email, reserve stock, record analytics, and add loyalty points. The order service calls each one and waits. The shopper waits for all four responses, almost a second."
+      ],
+      "callout": "Every new feature that reacts to an order requires changes, tests, and a redeploy of the order service."
+    },
+    {
+      "title": "An email outage stops checkout",
+      "body": [
+        "The email provider is down. The order service calls it, gets an error, and checkout fails because it waits for every service. An email that could be sent ten minutes later has stopped all sales."
+      ],
+      "callout": "If checkout depends on four services, each one’s availability affects checkout. Four services at 99.9% availability give about 99.6% combined availability in this example."
+    },
+    {
+      "title": "Publish an event instead",
+      "body": [
+        "The order service saves the order and publishes one <code>OrderPlaced</code> event to a topic on an <span class=\"term\">event bus</span>. It can then answer the shopper. Email, inventory, analytics, and loyalty services <b>subscribe</b> to that topic and each receive a copy of the event."
+      ],
+      "callout": "Common event brokers include Kafka, Amazon SNS with SQS, Google Pub/Sub, RabbitMQ fanout exchanges, and Redis Streams."
+    },
+    {
+      "title": "Queue or topic?",
+      "body": [
+        "In the previous lesson, each job went to one worker; a queue shares work among workers. A topic does the opposite: it sends each event to every subscriber. Systems often combine them. Each subscribing service gets its own queue, which can be shared by several copies of that service."
+      ],
+      "callout": "A queue says “someone do this work.” A topic says “this happened.”"
+    },
+    {
+      "title": "Add a subscriber without changing checkout",
+      "body": [
+        "The risk team wants to check each order for fraud. It builds a service that subscribes to <code>OrderPlaced</code>. The order service does not need to change or redeploy, and it does not need to know about fraud checks. This is <span class=\"term\">loose coupling</span>: the publisher and subscribers do not depend directly on each other."
+      ],
+      "callout": "Teams can add a new reaction to an event without coordinating a release with the publisher."
+    },
+    {
+      "title": "A subscriber can catch up later",
+      "body": [
+        "The email service is down again, but checkout still works. The event bus holds email’s messages until it recovers. Then the email service works through its backlog and sends the confirmations late. The outage affected email processing, not checkout."
+      ],
+      "callout": "Durable events let a slow or unavailable subscriber catch up when it returns."
+    },
+    {
+      "title": "Events add their own costs",
+      "body": [
+        "Events separate services, but the workflow is now spread across several codebases. Subscribers act later, so data may be briefly inconsistent. Events may arrive twice or out of order, and debugging requires tracing them across services."
+      ],
+      "callout": "Name events as facts that already happened, such as OrderPlaced or PaymentFailed. Make subscribers safe to run more than once."
+    },
+    {
+      "title": "Save the order and its event together",
+      "body": [
+        "The order service saves an order, then publishes <code>OrderPlaced</code>. If it crashes between those actions, the order exists but no event was sent. The <span class=\"term\">transactional outbox</span> pattern fixes this: save the order and an event row in an <code>outbox</code> table in the same database transaction. A relay later publishes every outbox row to the event bus."
+      ],
+      "callout": "Either the order and its event are both saved, or neither is. The relay retries until the bus accepts an event, so subscribers must handle duplicates. The relay can poll the table or read the database log using <b>change data capture</b>, such as Debezium."
+    },
+    {
+      "title": "Replay retained events",
+      "body": [
+        "Analytics finds a bug that miscounted revenue for the last 30 days. A basic queue may delete each event after it is consumed. A log-based bus such as Kafka can retain events for days or weeks. Analytics fixes its code, moves its position back 30 days, and processes the events again without affecting other subscribers."
+      ],
+      "callout": "A new subscriber can also read retained events to build its data from history instead of starting empty."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Direct calls can make a caller slow and fragile, and connect teams too tightly.</li><li><b>Publish</b> an event; each <b>subscriber</b> gets its own copy.</li><li>New services can subscribe later, and unavailable subscribers can catch up.</li><li>Expect delays, duplicates, and harder tracing.</li><li>Use an <b>outbox</b> so database changes and events stay together; retained logs allow replay.</li></ul>"
+      ],
+      "callout": "Next: <b>Real-time Updates</b> — how events reach a user’s screen."
+    }
+  ]
+}

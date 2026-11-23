@@ -1,0 +1,60 @@
+{
+  "summary": "Use fast tests for individual logic and a smaller number of slower tests for the full system.",
+  "goals": [
+    "How unit tests and test doubles work",
+    "How integration and contract tests catch different problems",
+    "How end-to-end tests fit into the test pyramid",
+    "How to handle flaky tests and test load and failure"
+  ],
+  "steps": [
+    {
+      "callout": "Every change raises the question: what else could it break? Tests let the team check repeatedly instead of relying on memory."
+    },
+    {
+      "callout": "The later a bug is found, the more it costs: seconds in a test, hours in review, or days in production."
+    },
+    {
+      "body": [
+        "A <span class=\"term\">unit test</span> calls one function with known inputs and checks its result. It runs in milliseconds without a database or network, so teams can write many and run them on every change. A rounding example becomes a test that fails if the bug returns."
+      ]
+    },
+    {
+      "body": [
+        "Checkout depends on other systems, so unit tests can use <span class=\"term\">test doubles</span>. A <b>fake</b> database works in memory. A <b>stub</b> always returns a planned answer. A <b>mock</b> records whether something happened, such as charging a card once. A double may not behave like the real service, so tests need to cover real integrations too."
+      ]
+    },
+    {
+      "body": [
+        "An <span class=\"term\">integration test</span> runs Checkout against a real database, often started in a container for the test. It checks what was actually saved and can catch SQL mistakes, broken migrations, or mismatched types. Keep the payment provider stubbed so no real card is charged; a smaller suite can use its sandbox."
+      ]
+    },
+    {
+      "body": [
+        "A <span class=\"term\">contract test</span> records what Checkout expects from Inventory, such as a request and a response with certain fields. Inventory checks its changes against that contract, so a breaking API change fails before deployment."
+      ]
+    },
+    {
+      "callout": "An end-to-end test shows that something broke, but not why. Faster tests below it should help locate the cause."
+    },
+    {
+      "body": [
+        "The <span class=\"term\">test pyramid</span> has many fast unit tests at the bottom, fewer integration and contract tests in the middle, and a handful of end-to-end tests at the top. Put each check in the lowest layer that can verify it."
+      ]
+    },
+    {
+      "body": [
+        "A <span class=\"term\">flaky test</span> sometimes fails even when the code has not changed. This test waits exactly two seconds for an email, but the email sometimes takes three. People learn to rerun it and may rerun real failures too."
+      ]
+    },
+    {
+      "body": [
+        "A <b>load test</b> sends production-like traffic to a copy of the system and finds when latency starts to rise. <b>Failure tests</b> deliberately stop a database replica or slow the payment provider, then check whether timeouts, retries, and failover work."
+      ]
+    },
+    {
+      "body": [
+        "<ul class=\"takeaways\"><li><b>Unit tests</b> check one part with test doubles and run quickly.</li><li><b>Integration tests</b> use real neighboring systems, such as a database in a container.</li><li><b>Contract tests</b> catch breaking API changes between teams.</li><li>A few <b>end-to-end tests</b> cover important journeys; keep the pyramid right-side up.</li><li>Fix <b>flaky</b> tests and test for load and failure, not just correct output.</li></ul>"
+      ]
+    }
+  ]
+}

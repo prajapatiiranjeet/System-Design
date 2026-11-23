@@ -1,0 +1,2894 @@
+{
+  "course": "System Design",
+  "source": "User supplied System Design files.zip and locally bundled original reference runtime",
+  "uniqueLessonCount": 40,
+  "archiveHtmlCount": 41,
+  "duplicateCaptures": [
+    {
+      "title": "how-a-request-travels",
+      "files": [
+        "How a Request Travels · System Design (11_23_2026 12：08：55 AM).html"
+      ]
+    }
+  ],
+  "modules": [
+    "Foundations",
+    "Scaling",
+    "Data & Storage",
+    "Communication",
+    "Reliability",
+    "Architecture",
+    "Security",
+    "Shipping",
+    "Whole Systems"
+  ],
+  "lessons": [
+    {
+      "id": "how-a-request-travels",
+      "title": "How a Request Travels",
+      "module": "Foundations",
+      "moduleNumber": 1,
+      "lessonNumber": 1,
+      "lessonsInModule": 3,
+      "description": "Follow one page load hop by hop — and find out where the time really goes.",
+      "contentSource": "source-captures/How a Request Travels · System Design (11_23_2026 12：08：29 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Hit Enter",
+          "explanation": "Users say the shop feels slow"
+        },
+        {
+          "index": 1,
+          "label": "Find address",
+          "explanation": "Find the address (DNS)"
+        },
+        {
+          "index": 2,
+          "label": "Connect",
+          "explanation": "Open a connection"
+        },
+        {
+          "index": 3,
+          "label": "Request",
+          "explanation": "Send the request"
+        },
+        {
+          "index": 4,
+          "label": "Fetch data",
+          "explanation": "The server asks the database"
+        },
+        {
+          "index": 5,
+          "label": "Response",
+          "explanation": "The response comes home"
+        },
+        {
+          "index": 6,
+          "label": "More files",
+          "explanation": "One page, forty more requests"
+        },
+        {
+          "index": 7,
+          "label": "Slow query",
+          "explanation": "Case: one slow query"
+        },
+        {
+          "index": 8,
+          "label": "Far away",
+          "explanation": "Case: a user in Sydney"
+        },
+        {
+          "index": 9,
+          "label": "Recap",
+          "explanation": "Where the time went"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": [
+        "How a Request Travels · System Design (11_23_2026 12：08：55 AM).html"
+      ]
+    },
+    {
+      "id": "latency-throughput",
+      "title": "Latency & Throughput",
+      "module": "Foundations",
+      "moduleNumber": 1,
+      "lessonNumber": 2,
+      "lessonsInModule": 3,
+      "description": "Two questions about speed — and why busy servers slow down before they’re full.",
+      "contentSource": "source-captures/Latency & Throughput · System Design (11_23_2026 12：09：10 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Two numbers",
+          "explanation": "Two different questions"
+        },
+        {
+          "index": 1,
+          "label": "Busier",
+          "explanation": "More users, same server"
+        },
+        {
+          "index": 2,
+          "label": "Hockey stick",
+          "explanation": "The hockey stick"
+        },
+        {
+          "index": 3,
+          "label": "Averages lie",
+          "explanation": "Averages hide the pain"
+        },
+        {
+          "index": 4,
+          "label": "Add capacity",
+          "explanation": "Add capacity, buy back latency"
+        },
+        {
+          "index": 5,
+          "label": "Distance",
+          "explanation": "Distance is latency too"
+        },
+        {
+          "index": 6,
+          "label": "In flight",
+          "explanation": "Little’s Law: how much is in flight"
+        },
+        {
+          "index": 7,
+          "label": "Fan-out",
+          "explanation": "One request, many servers"
+        },
+        {
+          "index": 8,
+          "label": "Batching",
+          "explanation": "Batching: more throughput, a bit more latency"
+        },
+        {
+          "index": 9,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "napkin-math",
+      "title": "Napkin Math",
+      "module": "Foundations",
+      "moduleNumber": 1,
+      "lessonNumber": 3,
+      "lessonsInModule": 3,
+      "description": "Turn a product idea into servers and terabytes with math that fits on a napkin.",
+      "contentSource": "source-captures/Napkin Math · System Design (11_23_2026 12：09：18 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "The question",
+          "explanation": "Will one server do?"
+        },
+        {
+          "index": 1,
+          "label": "Requests / s",
+          "explanation": "Daily users → requests per second"
+        },
+        {
+          "index": 2,
+          "label": "Peak",
+          "explanation": "Plan for the peak, not the average"
+        },
+        {
+          "index": 3,
+          "label": "Servers",
+          "explanation": "How many servers?"
+        },
+        {
+          "index": 4,
+          "label": "Storage",
+          "explanation": "How much storage?"
+        },
+        {
+          "index": 5,
+          "label": "Bandwidth",
+          "explanation": "How much network?"
+        },
+        {
+          "index": 6,
+          "label": "Cache size",
+          "explanation": "Will it fit in memory?"
+        },
+        {
+          "index": 7,
+          "label": "Numbers",
+          "explanation": "Numbers worth memorising"
+        },
+        {
+          "index": 8,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "vertical-vs-horizontal-scaling",
+      "title": "Vertical vs Horizontal Scaling",
+      "module": "Scaling",
+      "moduleNumber": 2,
+      "lessonNumber": 1,
+      "lessonsInModule": 5,
+      "description": "Your one server is melting. Do you buy a bigger one, or more of them?",
+      "contentSource": "source-captures/Vertical vs Horizontal Scaling · System Design (11_23_2026 12：09：33 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "One server",
+          "explanation": "It starts with one server"
+        },
+        {
+          "index": 1,
+          "label": "Viral spike",
+          "explanation": "Then you go viral"
+        },
+        {
+          "index": 2,
+          "label": "Scale up",
+          "explanation": "Way 1 — scale up"
+        },
+        {
+          "index": 3,
+          "label": "The ceiling",
+          "explanation": "…until you hit the ceiling"
+        },
+        {
+          "index": 4,
+          "label": "One failure",
+          "explanation": "…and it’s a single point of failure"
+        },
+        {
+          "index": 5,
+          "label": "Scale out",
+          "explanation": "Way 2 — scale out"
+        },
+        {
+          "index": 6,
+          "label": "Night time",
+          "explanation": "Peak capacity, idle all night"
+        },
+        {
+          "index": 7,
+          "label": "Autoscale",
+          "explanation": "Autoscaling: follow the demand"
+        },
+        {
+          "index": 8,
+          "label": "Flash sale",
+          "explanation": "Case: the flash sale"
+        },
+        {
+          "index": 9,
+          "label": "Who routes?",
+          "explanation": "But who sends users where?"
+        },
+        {
+          "index": 10,
+          "label": "Recap",
+          "explanation": "Recap: up vs out"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "load-balancing",
+      "title": "Load Balancing",
+      "module": "Scaling",
+      "moduleNumber": 2,
+      "lessonNumber": 2,
+      "lessonsInModule": 5,
+      "description": "One front door for many servers — and the rules for who gets which request.",
+      "contentSource": "source-captures/Load Balancing · System Design (11_23_2026 12：09：44 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Hot spot",
+          "explanation": "Three servers, one address"
+        },
+        {
+          "index": 1,
+          "label": "Add an LB",
+          "explanation": "Put a load balancer in front"
+        },
+        {
+          "index": 2,
+          "label": "Round robin",
+          "explanation": "Round robin: take turns"
+        },
+        {
+          "index": 3,
+          "label": "Heavy work",
+          "explanation": "When requests aren’t equal"
+        },
+        {
+          "index": 4,
+          "label": "Least conns",
+          "explanation": "Least connections"
+        },
+        {
+          "index": 5,
+          "label": "Health checks",
+          "explanation": "Health checks route around failure"
+        },
+        {
+          "index": 6,
+          "label": "LB fails",
+          "explanation": "Who balances the balancer?"
+        },
+        {
+          "index": 7,
+          "label": "Standby",
+          "explanation": "Add a standby"
+        },
+        {
+          "index": 8,
+          "label": "Failover",
+          "explanation": "Failover in seconds"
+        },
+        {
+          "index": 9,
+          "label": "By path",
+          "explanation": "Route by what’s in the request"
+        },
+        {
+          "index": 10,
+          "label": "Deploy",
+          "explanation": "Case: deploying without downtime"
+        },
+        {
+          "index": 11,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "stateless-services",
+      "title": "Stateless Services",
+      "module": "Scaling",
+      "moduleNumber": 2,
+      "lessonNumber": 3,
+      "lessonsInModule": 5,
+      "description": "Why the next request must work on any server — and where the state goes instead.",
+      "contentSource": "source-captures/Stateless Services · System Design (11_23_2026 12：09：53 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Logged in",
+          "explanation": "Alice logs in"
+        },
+        {
+          "index": 1,
+          "label": "Logged out",
+          "explanation": "Her next request lands elsewhere"
+        },
+        {
+          "index": 2,
+          "label": "Sticky",
+          "explanation": "Fix 1: sticky sessions"
+        },
+        {
+          "index": 3,
+          "label": "A dies",
+          "explanation": "…until Server A dies"
+        },
+        {
+          "index": 4,
+          "label": "Shared store",
+          "explanation": "Fix 2: move the state out"
+        },
+        {
+          "index": 5,
+          "label": "Lose one",
+          "explanation": "Now losing a server is a non-event"
+        },
+        {
+          "index": 6,
+          "label": "Tokens",
+          "explanation": "Or: let the request carry it"
+        },
+        {
+          "index": 7,
+          "label": "Uploads",
+          "explanation": "Case: files on a local disk"
+        },
+        {
+          "index": 8,
+          "label": "Object store",
+          "explanation": "Put files in object storage"
+        },
+        {
+          "index": 9,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "caching",
+      "title": "Caching",
+      "module": "Scaling",
+      "moduleNumber": 2,
+      "lessonNumber": 4,
+      "lessonsInModule": 5,
+      "description": "Keep the answers people ask for most somewhere much faster than the database.",
+      "contentSource": "source-captures/Caching · System Design (11_23_2026 12：10：02 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "DB melts",
+          "explanation": "Every page hits the database"
+        },
+        {
+          "index": 1,
+          "label": "Same reads",
+          "explanation": "The same few things, over and over"
+        },
+        {
+          "index": 2,
+          "label": "Add cache",
+          "explanation": "Put a cache in front"
+        },
+        {
+          "index": 3,
+          "label": "Hit rate",
+          "explanation": "Hit rate is everything"
+        },
+        {
+          "index": 4,
+          "label": "Stale",
+          "explanation": "The price changed. The cache didn’t."
+        },
+        {
+          "index": 5,
+          "label": "Invalidate",
+          "explanation": "Invalidate on write, expire with a TTL"
+        },
+        {
+          "index": 6,
+          "label": "Eviction",
+          "explanation": "Memory runs out"
+        },
+        {
+          "index": 7,
+          "label": "Stampede",
+          "explanation": "Case: the cache stampede"
+        },
+        {
+          "index": 8,
+          "label": "One fetch",
+          "explanation": "Let one request refill it"
+        },
+        {
+          "index": 9,
+          "label": "Missing keys",
+          "explanation": "Case: asking for what isn’t there"
+        },
+        {
+          "index": 10,
+          "label": "Bloom filter",
+          "explanation": "Remember the “no” as well"
+        },
+        {
+          "index": 11,
+          "label": "Layers",
+          "explanation": "Caches everywhere"
+        },
+        {
+          "index": 12,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "content-delivery",
+      "title": "Content Delivery",
+      "module": "Scaling",
+      "moduleNumber": 2,
+      "lessonNumber": 5,
+      "lessonsInModule": 5,
+      "description": "Copy what everyone downloads to servers near your users — and stop fighting the speed of light.",
+      "contentSource": "source-captures/Content Delivery · System Design (11_23_2026 12：10：14 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Far away",
+          "explanation": "Your users are far away"
+        },
+        {
+          "index": 1,
+          "label": "Same bytes",
+          "explanation": "Most bytes are the same for everyone"
+        },
+        {
+          "index": 2,
+          "label": "Edges",
+          "explanation": "Put copies at the edge"
+        },
+        {
+          "index": 3,
+          "label": "Cold edge",
+          "explanation": "First requests are misses"
+        },
+        {
+          "index": 4,
+          "label": "Old files",
+          "explanation": "You ship a new logo. Nobody sees it."
+        },
+        {
+          "index": 5,
+          "label": "Versioning",
+          "explanation": "Give every version a new name"
+        },
+        {
+          "index": 6,
+          "label": "Spike",
+          "explanation": "Spikes hit the edge, not you"
+        },
+        {
+          "index": 7,
+          "label": "Private",
+          "explanation": "Case: never cache someone’s cart"
+        },
+        {
+          "index": 8,
+          "label": "Shield",
+          "explanation": "Origin shield: one more layer"
+        },
+        {
+          "index": 9,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "sql-vs-nosql",
+      "title": "SQL vs NoSQL",
+      "module": "Data & Storage",
+      "moduleNumber": 3,
+      "lessonNumber": 1,
+      "lessonsInModule": 11,
+      "description": "Tables, documents or plain keys — what each kind of database is good at, and what it gives up.",
+      "contentSource": "source-captures/SQL vs NoSQL · System Design (11_23_2026 12：10：29 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Tables",
+          "explanation": "Data in tables"
+        },
+        {
+          "index": 1,
+          "label": "Transactions",
+          "explanation": "All or nothing: transactions"
+        },
+        {
+          "index": 2,
+          "label": "Growing pains",
+          "explanation": "Growing pains"
+        },
+        {
+          "index": 3,
+          "label": "Documents",
+          "explanation": "Documents: each record its own shape"
+        },
+        {
+          "index": 4,
+          "label": "Key–value",
+          "explanation": "Key–value: just look it up"
+        },
+        {
+          "index": 5,
+          "label": "Trade-offs",
+          "explanation": "What NoSQL gives up"
+        },
+        {
+          "index": 6,
+          "label": "Use both",
+          "explanation": "Use each where it fits"
+        },
+        {
+          "index": 7,
+          "label": "Search",
+          "explanation": "Case: “red running shoes”"
+        },
+        {
+          "index": 8,
+          "label": "Specialists",
+          "explanation": "More specialised stores"
+        },
+        {
+          "index": 9,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "indexes",
+      "title": "Indexes",
+      "module": "Data & Storage",
+      "moduleNumber": 3,
+      "lessonNumber": 2,
+      "lessonsInModule": 11,
+      "description": "Why the same query can take two seconds or two milliseconds.",
+      "contentSource": "source-captures/Indexes · System Design (11_23_2026 12：10：51 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Slow query",
+          "explanation": "Finding one user takes two seconds"
+        },
+        {
+          "index": 1,
+          "label": "Phone book",
+          "explanation": "How a phone book does it"
+        },
+        {
+          "index": 2,
+          "label": "Add index",
+          "explanation": "Add an index"
+        },
+        {
+          "index": 3,
+          "label": "Why shallow",
+          "explanation": "Why B-trees stay shallow"
+        },
+        {
+          "index": 4,
+          "label": "Writes pay",
+          "explanation": "Every index makes writes slower"
+        },
+        {
+          "index": 5,
+          "label": "Column order",
+          "explanation": "Composite indexes: order matters"
+        },
+        {
+          "index": 6,
+          "label": "Wildcards",
+          "explanation": "Case: queries the index can’t help"
+        },
+        {
+          "index": 7,
+          "label": "Selectivity",
+          "explanation": "Case: the index nobody uses"
+        },
+        {
+          "index": 8,
+          "label": "EXPLAIN",
+          "explanation": "Ask the database: EXPLAIN"
+        },
+        {
+          "index": 9,
+          "label": "Covering",
+          "explanation": "Covering indexes: skip the table"
+        },
+        {
+          "index": 10,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "storage-engines",
+      "title": "Storage Engines",
+      "module": "Data & Storage",
+      "moduleNumber": 3,
+      "lessonNumber": 3,
+      "lessonsInModule": 11,
+      "description": "What a database actually does with your write — and why some are built for reads and others for writes.",
+      "contentSource": "source-captures/Storage Engines · System Design (11_23_2026 12：10：59 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Two places",
+          "explanation": "Memory and disk"
+        },
+        {
+          "index": 1,
+          "label": "Crash",
+          "explanation": "Fast and wrong: memory first, disk whenever"
+        },
+        {
+          "index": 2,
+          "label": "Log first",
+          "explanation": "Write it down first: the write-ahead log"
+        },
+        {
+          "index": 3,
+          "label": "How sure?",
+          "explanation": "Case: how sure is “saved”?"
+        },
+        {
+          "index": 4,
+          "label": "Checkpoint",
+          "explanation": "The log can’t grow for ever"
+        },
+        {
+          "index": 5,
+          "label": "B-tree",
+          "explanation": "The classic engine: pages and B-trees, updated in place"
+        },
+        {
+          "index": 6,
+          "label": "Firehose",
+          "explanation": "Case: a firehose of writes"
+        },
+        {
+          "index": 7,
+          "label": "LSM-tree",
+          "explanation": "Never update in place: the LSM-tree"
+        },
+        {
+          "index": 8,
+          "label": "Find a key",
+          "explanation": "Case: where is my key?"
+        },
+        {
+          "index": 9,
+          "label": "Compaction",
+          "explanation": "Compaction: tidying up in the background"
+        },
+        {
+          "index": 10,
+          "label": "Choosing",
+          "explanation": "B-tree or LSM?"
+        },
+        {
+          "index": 11,
+          "label": "Columns",
+          "explanation": "Case: rows or columns?"
+        },
+        {
+          "index": 12,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "replication",
+      "title": "Replication",
+      "module": "Data & Storage",
+      "moduleNumber": 3,
+      "lessonNumber": 4,
+      "lessonsInModule": 11,
+      "description": "Keep copies of the database on several machines — for more reads and for survival.",
+      "contentSource": "source-captures/Replication · System Design (11_23_2026 12：11：08 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "One DB",
+          "explanation": "One database, doing everything"
+        },
+        {
+          "index": 1,
+          "label": "Copies",
+          "explanation": "Keep copies: leader and followers"
+        },
+        {
+          "index": 2,
+          "label": "Read replicas",
+          "explanation": "Send reads to the followers"
+        },
+        {
+          "index": 3,
+          "label": "Lag",
+          "explanation": "Copies lag behind"
+        },
+        {
+          "index": 4,
+          "label": "Read your writes",
+          "explanation": "Read your own writes"
+        },
+        {
+          "index": 5,
+          "label": "Leader dies",
+          "explanation": "The leader dies"
+        },
+        {
+          "index": 6,
+          "label": "Failover",
+          "explanation": "Failover: promote a follower"
+        },
+        {
+          "index": 7,
+          "label": "Reports",
+          "explanation": "Case: the 20-minute report"
+        },
+        {
+          "index": 8,
+          "label": "Not a backup",
+          "explanation": "Case: the migration with no WHERE"
+        },
+        {
+          "index": 9,
+          "label": "Styles",
+          "explanation": "Three ways to replicate"
+        },
+        {
+          "index": 10,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "sharding",
+      "title": "Sharding",
+      "module": "Data & Storage",
+      "moduleNumber": 3,
+      "lessonNumber": 5,
+      "lessonsInModule": 11,
+      "description": "When the data or the writes outgrow one machine, split them across many.",
+      "contentSource": "source-captures/Sharding · System Design (11_23_2026 12：11：29 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Too big",
+          "explanation": "Too big for one machine"
+        },
+        {
+          "index": 1,
+          "label": "Split by range",
+          "explanation": "Split the data: sharding"
+        },
+        {
+          "index": 2,
+          "label": "Hot spot",
+          "explanation": "Ranges create hot spots"
+        },
+        {
+          "index": 3,
+          "label": "Hash it",
+          "explanation": "Hash the key"
+        },
+        {
+          "index": 4,
+          "label": "Celebrity",
+          "explanation": "Case: the celebrity"
+        },
+        {
+          "index": 5,
+          "label": "Split key",
+          "explanation": "Cache it, or split it"
+        },
+        {
+          "index": 6,
+          "label": "Cross-shard",
+          "explanation": "Queries that span every shard"
+        },
+        {
+          "index": 7,
+          "label": "Add a shard",
+          "explanation": "Adding a shard moves almost everything"
+        },
+        {
+          "index": 8,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "consistent-hashing",
+      "title": "Consistent Hashing",
+      "module": "Data & Storage",
+      "moduleNumber": 3,
+      "lessonNumber": 6,
+      "lessonsInModule": 11,
+      "description": "Add or remove servers and move only a sliver of the data.",
+      "contentSource": "source-captures/Consistent Hashing · System Design (11_23_2026 12：11：39 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "The problem",
+          "explanation": "hash % N breaks when N changes"
+        },
+        {
+          "index": 1,
+          "label": "The ring",
+          "explanation": "Bend the hash space into a ring"
+        },
+        {
+          "index": 2,
+          "label": "Keys",
+          "explanation": "Each key goes clockwise"
+        },
+        {
+          "index": 3,
+          "label": "Add a server",
+          "explanation": "Adding a server moves one arc"
+        },
+        {
+          "index": 4,
+          "label": "Remove one",
+          "explanation": "Removing a server moves one arc too"
+        },
+        {
+          "index": 5,
+          "label": "Uneven",
+          "explanation": "Random positions, uneven arcs"
+        },
+        {
+          "index": 6,
+          "label": "Virtual nodes",
+          "explanation": "Virtual nodes even it out"
+        },
+        {
+          "index": 7,
+          "label": "Replicas",
+          "explanation": "Copies on the next servers clockwise"
+        },
+        {
+          "index": 8,
+          "label": "Cache fleet",
+          "explanation": "Case: growing a cache cluster"
+        },
+        {
+          "index": 9,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "unique-ids-at-scale",
+      "title": "Unique IDs at Scale",
+      "module": "Data & Storage",
+      "moduleNumber": 3,
+      "lessonNumber": 7,
+      "lessonsInModule": 11,
+      "description": "Giving every row a name nobody else will ever use — without one counter everyone has to queue for.",
+      "contentSource": "source-captures/Unique IDs at Scale · System Design (11_23_2026 12：11：47 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "One counter",
+          "explanation": "Every row needs a name"
+        },
+        {
+          "index": 1,
+          "label": "Shards collide",
+          "explanation": "Two shards, two counters"
+        },
+        {
+          "index": 2,
+          "label": "Ticket server",
+          "explanation": "Way 1 — one counter for everyone"
+        },
+        {
+          "index": 3,
+          "label": "Blocks",
+          "explanation": "Hand out blocks, not single numbers"
+        },
+        {
+          "index": 4,
+          "label": "UUIDs",
+          "explanation": "Way 2 — pick a number nobody else will"
+        },
+        {
+          "index": 5,
+          "label": "Random hurts",
+          "explanation": "Case: random ids and the index"
+        },
+        {
+          "index": 6,
+          "label": "Time first",
+          "explanation": "Put the time in front"
+        },
+        {
+          "index": 7,
+          "label": "Snowflake",
+          "explanation": "Way 3 — Snowflake ids"
+        },
+        {
+          "index": 8,
+          "label": "Clock",
+          "explanation": "Case: the clock steps back"
+        },
+        {
+          "index": 9,
+          "label": "Leaks",
+          "explanation": "Case: what an id gives away"
+        },
+        {
+          "index": 10,
+          "label": "Choosing",
+          "explanation": "Which id for which job"
+        },
+        {
+          "index": 11,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "cap-consistency",
+      "title": "CAP & Consistency",
+      "module": "Data & Storage",
+      "moduleNumber": 3,
+      "lessonNumber": 8,
+      "lessonsInModule": 11,
+      "description": "When the network splits, copies of your data must choose between being right and being reachable.",
+      "contentSource": "source-captures/CAP & Consistency · System Design (11_23_2026 12：11：56 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Two regions",
+          "explanation": "Copies in two regions"
+        },
+        {
+          "index": 1,
+          "label": "Partition",
+          "explanation": "The network splits"
+        },
+        {
+          "index": 2,
+          "label": "Choose C",
+          "explanation": "Option 1: stay consistent"
+        },
+        {
+          "index": 3,
+          "label": "Choose A",
+          "explanation": "Option 2: stay available"
+        },
+        {
+          "index": 4,
+          "label": "Heal",
+          "explanation": "Healing: eventual consistency"
+        },
+        {
+          "index": 5,
+          "label": "Clocks",
+          "explanation": "Case: “last” by whose clock?"
+        },
+        {
+          "index": 6,
+          "label": "CAP",
+          "explanation": "What CAP actually says"
+        },
+        {
+          "index": 7,
+          "label": "Quorums",
+          "explanation": "Quorums: tune the trade-off"
+        },
+        {
+          "index": 8,
+          "label": "Per operation",
+          "explanation": "Case: a payment and a like"
+        },
+        {
+          "index": 9,
+          "label": "Models",
+          "explanation": "Consistency is a spectrum"
+        },
+        {
+          "index": 10,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "consensus-leader-election",
+      "title": "Consensus & Leader Election",
+      "module": "Data & Storage",
+      "moduleNumber": 3,
+      "lessonNumber": 9,
+      "lessonsInModule": 11,
+      "description": "How a group of servers agrees on one leader and one history — even when some of them can’t be reached.",
+      "contentSource": "source-captures/Consensus & Leader Election · System Design (11_23_2026 12：12：04 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "One leader",
+          "explanation": "One leader, two followers"
+        },
+        {
+          "index": 1,
+          "label": "Split brain",
+          "explanation": "Two leaders at once"
+        },
+        {
+          "index": 2,
+          "label": "Majority",
+          "explanation": "The rule: nothing counts without a majority"
+        },
+        {
+          "index": 3,
+          "label": "Election",
+          "explanation": "How a leader gets elected"
+        },
+        {
+          "index": 4,
+          "label": "Commit",
+          "explanation": "A write is committed by a majority"
+        },
+        {
+          "index": 5,
+          "label": "Heal",
+          "explanation": "The old leader steps down"
+        },
+        {
+          "index": 6,
+          "label": "How many",
+          "explanation": "How many nodes?"
+        },
+        {
+          "index": 7,
+          "label": "Zombie",
+          "explanation": "Case: the leader that paused"
+        },
+        {
+          "index": 8,
+          "label": "Fencing",
+          "explanation": "Fencing tokens"
+        },
+        {
+          "index": 9,
+          "label": "The price",
+          "explanation": "What consensus costs"
+        },
+        {
+          "index": 10,
+          "label": "In practice",
+          "explanation": "You use it far more than you write it"
+        },
+        {
+          "index": 11,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "transactions-isolation",
+      "title": "Transactions & Isolation",
+      "module": "Data & Storage",
+      "moduleNumber": 3,
+      "lessonNumber": 10,
+      "lessonsInModule": 11,
+      "description": "Two people, one seat, the same millisecond. How databases keep concurrent changes correct.",
+      "contentSource": "source-captures/Transactions & Isolation · System Design (11_23_2026 12：12：13 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Last seat",
+          "explanation": "One seat left"
+        },
+        {
+          "index": 1,
+          "label": "Race",
+          "explanation": "Both of them get it"
+        },
+        {
+          "index": 2,
+          "label": "Not enough",
+          "explanation": "A transaction alone doesn’t stop it"
+        },
+        {
+          "index": 3,
+          "label": "Lock",
+          "explanation": "Lock the row while you decide"
+        },
+        {
+          "index": 4,
+          "label": "Atomic",
+          "explanation": "Or do it in one statement"
+        },
+        {
+          "index": 5,
+          "label": "Versions",
+          "explanation": "Optimistic: check a version number"
+        },
+        {
+          "index": 6,
+          "label": "Levels",
+          "explanation": "Isolation levels"
+        },
+        {
+          "index": 7,
+          "label": "Phantom",
+          "explanation": "Case: locking a row that doesn’t exist yet"
+        },
+        {
+          "index": 8,
+          "label": "Deadlock",
+          "explanation": "Case: the deadlock"
+        },
+        {
+          "index": 9,
+          "label": "Constraint",
+          "explanation": "Constraints: the last line of defence"
+        },
+        {
+          "index": 10,
+          "label": "Slow lock",
+          "explanation": "Case: a lock held during a payment"
+        },
+        {
+          "index": 11,
+          "label": "Hold",
+          "explanation": "Reserve, pay, then confirm"
+        },
+        {
+          "index": 12,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "files-media",
+      "title": "Files & Media",
+      "module": "Data & Storage",
+      "moduleNumber": 3,
+      "lessonNumber": 11,
+      "lessonsInModule": 11,
+      "description": "Photos and videos don’t belong in your database — where they go instead, and how they get there and back.",
+      "contentSource": "source-captures/Files & Media · System Design (11_23_2026 12：12：30 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "BLOBs",
+          "explanation": "Photos in the database"
+        },
+        {
+          "index": 1,
+          "label": "It chokes",
+          "explanation": "Two terabytes a day"
+        },
+        {
+          "index": 2,
+          "label": "Object storage",
+          "explanation": "Bytes in object storage, facts in the database"
+        },
+        {
+          "index": 3,
+          "label": "Through servers",
+          "explanation": "Case: a 2 GB video over a phone connection"
+        },
+        {
+          "index": 4,
+          "label": "Presigned",
+          "explanation": "Upload straight to storage"
+        },
+        {
+          "index": 5,
+          "label": "In parts",
+          "explanation": "Big files: upload in parts"
+        },
+        {
+          "index": 6,
+          "label": "Processing",
+          "explanation": "Make the versions people actually download"
+        },
+        {
+          "index": 7,
+          "label": "CDN",
+          "explanation": "Serve them from the edge"
+        },
+        {
+          "index": 8,
+          "label": "Video",
+          "explanation": "Video: let the player choose"
+        },
+        {
+          "index": 9,
+          "label": "In step",
+          "explanation": "Case: rows without files, files without rows"
+        },
+        {
+          "index": 10,
+          "label": "Lifecycle",
+          "explanation": "Old files can live somewhere cheaper"
+        },
+        {
+          "index": 11,
+          "label": "Public bucket",
+          "explanation": "Case: the bucket anyone can list"
+        },
+        {
+          "index": 12,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "rest-rpc-graphql",
+      "title": "REST, RPC & GraphQL",
+      "module": "Communication",
+      "moduleNumber": 4,
+      "lessonNumber": 1,
+      "lessonsInModule": 4,
+      "description": "Three ways for programs to ask each other for things — and what each costs a phone on 4G.",
+      "contentSource": "source-captures/REST, RPC & GraphQL · System Design (11_23_2026 12：12：39 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Contract",
+          "explanation": "Programs need a contract"
+        },
+        {
+          "index": 1,
+          "label": "REST",
+          "explanation": "REST: resources and verbs"
+        },
+        {
+          "index": 2,
+          "label": "On 4G",
+          "explanation": "Chatty and bloated on a phone"
+        },
+        {
+          "index": 3,
+          "label": "GraphQL",
+          "explanation": "GraphQL: ask for exactly what you need"
+        },
+        {
+          "index": 4,
+          "label": "The catch",
+          "explanation": "Flexible queries can be expensive"
+        },
+        {
+          "index": 5,
+          "label": "RPC",
+          "explanation": "Inside the data center: RPC"
+        },
+        {
+          "index": 6,
+          "label": "Pagination",
+          "explanation": "Case: a list with 2 million items"
+        },
+        {
+          "index": 7,
+          "label": "Versions",
+          "explanation": "Case: renaming a field breaks old apps"
+        },
+        {
+          "index": 8,
+          "label": "Choosing",
+          "explanation": "Which one, where?"
+        },
+        {
+          "index": 9,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "message-queues",
+      "title": "Message Queues",
+      "module": "Communication",
+      "moduleNumber": 4,
+      "lessonNumber": 2,
+      "lessonsInModule": 4,
+      "description": "Answer right away, do the slow work later — and never lose a job along the way.",
+      "contentSource": "source-captures/Message Queues · System Design (11_23_2026 12：12：52 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Slow upload",
+          "explanation": "Slow work inside the request"
+        },
+        {
+          "index": 1,
+          "label": "Add a queue",
+          "explanation": "Put a queue in between"
+        },
+        {
+          "index": 2,
+          "label": "Spike",
+          "explanation": "A spike becomes a backlog"
+        },
+        {
+          "index": 3,
+          "label": "More workers",
+          "explanation": "Add workers to drain it"
+        },
+        {
+          "index": 4,
+          "label": "Crash",
+          "explanation": "A worker dies mid-job"
+        },
+        {
+          "index": 5,
+          "label": "Acks",
+          "explanation": "Acknowledge when done"
+        },
+        {
+          "index": 6,
+          "label": "Poison",
+          "explanation": "Poison messages and the dead-letter queue"
+        },
+        {
+          "index": 7,
+          "label": "Order",
+          "explanation": "Case: messages out of order"
+        },
+        {
+          "index": 8,
+          "label": "Partitions",
+          "explanation": "Order per key with partitions"
+        },
+        {
+          "index": 9,
+          "label": "Backpressure",
+          "explanation": "When the backlog never drains"
+        },
+        {
+          "index": 10,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "pub-sub-events",
+      "title": "Pub/Sub & Events",
+      "module": "Communication",
+      "moduleNumber": 4,
+      "lessonNumber": 3,
+      "lessonsInModule": 4,
+      "description": "Announce that something happened, and let whoever cares react — without anyone waiting.",
+      "contentSource": "source-captures/Pub_Sub & Events · System Design (11_23_2026 12：13：03 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Call everyone",
+          "explanation": "Checkout calls everyone"
+        },
+        {
+          "index": 1,
+          "label": "Email down",
+          "explanation": "Email is down, so nobody can buy"
+        },
+        {
+          "index": 2,
+          "label": "Publish",
+          "explanation": "Publish an event instead"
+        },
+        {
+          "index": 3,
+          "label": "Queue vs topic",
+          "explanation": "Queue or topic?"
+        },
+        {
+          "index": 4,
+          "label": "New subscriber",
+          "explanation": "New features just subscribe"
+        },
+        {
+          "index": 5,
+          "label": "Catch up",
+          "explanation": "A subscriber is down? It catches up"
+        },
+        {
+          "index": 6,
+          "label": "Trade-offs",
+          "explanation": "What events cost"
+        },
+        {
+          "index": 7,
+          "label": "Outbox",
+          "explanation": "Case: saved, but never announced"
+        },
+        {
+          "index": 8,
+          "label": "Replay",
+          "explanation": "Case: replaying history"
+        },
+        {
+          "index": 9,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "real-time-updates",
+      "title": "Real-time Updates",
+      "module": "Communication",
+      "moduleNumber": 4,
+      "lessonNumber": 4,
+      "lessonsInModule": 4,
+      "description": "How the server tells you something happened — chat, live scores, notifications.",
+      "contentSource": "source-captures/Real-time Updates · System Design (11_23_2026 12：13：10 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "No way in",
+          "explanation": "Bob sent a message. How does Alice find out?"
+        },
+        {
+          "index": 1,
+          "label": "Polling",
+          "explanation": "Polling: keep asking"
+        },
+        {
+          "index": 2,
+          "label": "At scale",
+          "explanation": "Polling a million phones"
+        },
+        {
+          "index": 3,
+          "label": "Long polling",
+          "explanation": "Long polling: hold the request open"
+        },
+        {
+          "index": 4,
+          "label": "SSE",
+          "explanation": "Server-Sent Events: one response that never ends"
+        },
+        {
+          "index": 5,
+          "label": "WebSockets",
+          "explanation": "WebSockets: talk both ways"
+        },
+        {
+          "index": 6,
+          "label": "Many servers",
+          "explanation": "Scaling: which server has Alice?"
+        },
+        {
+          "index": 7,
+          "label": "Offline",
+          "explanation": "Case: Alice’s phone is offline"
+        },
+        {
+          "index": 8,
+          "label": "Presence",
+          "explanation": "Presence: who’s online"
+        },
+        {
+          "index": 9,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "redundancy-failover",
+      "title": "Redundancy & Failover",
+      "module": "Reliability",
+      "moduleNumber": 5,
+      "lessonNumber": 1,
+      "lessonsInModule": 4,
+      "description": "Everything fails eventually. Design so that no single failure takes you down.",
+      "contentSource": "source-captures/Redundancy & Failover · System Design (11_23_2026 12：13：20 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Nines",
+          "explanation": "How available is one of everything?"
+        },
+        {
+          "index": 1,
+          "label": "SPOFs",
+          "explanation": "Every box is a single point of failure"
+        },
+        {
+          "index": 2,
+          "label": "Two of each",
+          "explanation": "Redundancy: two of everything"
+        },
+        {
+          "index": 3,
+          "label": "One building",
+          "explanation": "Copies that fail together"
+        },
+        {
+          "index": 4,
+          "label": "Zones",
+          "explanation": "Spread across availability zones"
+        },
+        {
+          "index": 5,
+          "label": "Zone fails",
+          "explanation": "Zone A goes dark — failover"
+        },
+        {
+          "index": 6,
+          "label": "RTO & RPO",
+          "explanation": "How fast, and how much lost?"
+        },
+        {
+          "index": 7,
+          "label": "Chaos",
+          "explanation": "Untested failover doesn’t work"
+        },
+        {
+          "index": 8,
+          "label": "Bad deploy",
+          "explanation": "Case: the bug that’s everywhere at once"
+        },
+        {
+          "index": 9,
+          "label": "Canary",
+          "explanation": "Canary releases"
+        },
+        {
+          "index": 10,
+          "label": "Regions",
+          "explanation": "Beyond zones: multiple regions"
+        },
+        {
+          "index": 11,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "rate-limiting",
+      "title": "Rate Limiting",
+      "module": "Reliability",
+      "moduleNumber": 5,
+      "lessonNumber": 2,
+      "lessonsInModule": 4,
+      "description": "Give every client a fair budget, so one runaway script can’t take everyone down.",
+      "contentSource": "source-captures/Rate Limiting · System Design (11_23_2026 12：13：30 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Runaway",
+          "explanation": "One script, everyone suffers"
+        },
+        {
+          "index": 1,
+          "label": "Limit",
+          "explanation": "A rate limiter at the front door"
+        },
+        {
+          "index": 2,
+          "label": "Token bucket",
+          "explanation": "How it counts: the token bucket"
+        },
+        {
+          "index": 3,
+          "label": "Algorithms",
+          "explanation": "Windows vs buckets"
+        },
+        {
+          "index": 4,
+          "label": "Many gateways",
+          "explanation": "Many gateways, one budget"
+        },
+        {
+          "index": 5,
+          "label": "Back off",
+          "explanation": "Tell clients how to behave"
+        },
+        {
+          "index": 6,
+          "label": "Tenants",
+          "explanation": "Case: one customer’s 10,000 users"
+        },
+        {
+          "index": 7,
+          "label": "Shedding",
+          "explanation": "When everyone spikes: shed load"
+        },
+        {
+          "index": 8,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "timeouts-retries",
+      "title": "Timeouts & Retries",
+      "module": "Reliability",
+      "moduleNumber": 5,
+      "lessonNumber": 3,
+      "lessonsInModule": 4,
+      "description": "Calling a struggling service safely: give up in time, retry carefully, and know when to stop.",
+      "contentSource": "source-captures/Timeouts & Retries · System Design (11_23_2026 12：13：42 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Slow call",
+          "explanation": "One slow service takes down another"
+        },
+        {
+          "index": 1,
+          "label": "Timeout",
+          "explanation": "Set a timeout, have a fallback"
+        },
+        {
+          "index": 2,
+          "label": "Retry",
+          "explanation": "Retry the blips"
+        },
+        {
+          "index": 3,
+          "label": "Retry storm",
+          "explanation": "Retries become a storm"
+        },
+        {
+          "index": 4,
+          "label": "Backoff",
+          "explanation": "Back off, with jitter"
+        },
+        {
+          "index": 5,
+          "label": "Breaker",
+          "explanation": "Circuit breaker: stop calling for a while"
+        },
+        {
+          "index": 6,
+          "label": "Closed",
+          "explanation": "Half-open, then closed"
+        },
+        {
+          "index": 7,
+          "label": "Idempotency",
+          "explanation": "Retries must not charge twice"
+        },
+        {
+          "index": 8,
+          "label": "Deadlines",
+          "explanation": "Pass the deadline along"
+        },
+        {
+          "index": 9,
+          "label": "Bulkheads",
+          "explanation": "Bulkheads: separate pools"
+        },
+        {
+          "index": 10,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "observability",
+      "title": "Observability",
+      "module": "Reliability",
+      "moduleNumber": 5,
+      "lessonNumber": 4,
+      "lessonsInModule": 4,
+      "description": "Metrics, logs and traces: how to find out what’s wrong, where, and why — fast.",
+      "contentSource": "source-captures/Observability · System Design (11_23_2026 12：13：54 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "It’s slow",
+          "explanation": "“Checkout is slow.” Where?"
+        },
+        {
+          "index": 1,
+          "label": "Metrics",
+          "explanation": "Metrics: numbers over time"
+        },
+        {
+          "index": 2,
+          "label": "Alerts",
+          "explanation": "Alert on what users feel"
+        },
+        {
+          "index": 3,
+          "label": "Logs",
+          "explanation": "Logs: the story, line by line"
+        },
+        {
+          "index": 4,
+          "label": "Traces",
+          "explanation": "Traces: follow one request everywhere"
+        },
+        {
+          "index": 5,
+          "label": "Fixed",
+          "explanation": "Fix it, then prove it"
+        },
+        {
+          "index": 6,
+          "label": "Incident",
+          "explanation": "Case: 3 a.m. — errors spike"
+        },
+        {
+          "index": 7,
+          "label": "Post-mortem",
+          "explanation": "Learn from it: the post-mortem"
+        },
+        {
+          "index": 8,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "monolith-vs-microservices",
+      "title": "Monolith vs Microservices",
+      "module": "Architecture",
+      "moduleNumber": 6,
+      "lessonNumber": 1,
+      "lessonsInModule": 4,
+      "description": "One codebase or many services? What each buys you, what each costs, and how to move between them.",
+      "contentSource": "source-captures/Monolith vs Microservices · System Design (11_23_2026 12：14：05 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Monolith",
+          "explanation": "One app, one deploy"
+        },
+        {
+          "index": 1,
+          "label": "Growing pains",
+          "explanation": "Fifty engineers, one codebase"
+        },
+        {
+          "index": 2,
+          "label": "Split",
+          "explanation": "Split by business capability"
+        },
+        {
+          "index": 3,
+          "label": "Own data",
+          "explanation": "Each service owns its data"
+        },
+        {
+          "index": 4,
+          "label": "Network",
+          "explanation": "The network is in the middle now"
+        },
+        {
+          "index": 5,
+          "label": "Distributed monolith",
+          "explanation": "Case: the distributed monolith"
+        },
+        {
+          "index": 6,
+          "label": "Joins?",
+          "explanation": "Case: the order-history page"
+        },
+        {
+          "index": 7,
+          "label": "Local copy",
+          "explanation": "Keep a local read copy"
+        },
+        {
+          "index": 8,
+          "label": "Contracts",
+          "explanation": "Case: an API change breaks a neighbour"
+        },
+        {
+          "index": 9,
+          "label": "Choosing",
+          "explanation": "Which one should you pick?"
+        },
+        {
+          "index": 10,
+          "label": "Strangler",
+          "explanation": "Migrating: the strangler fig"
+        },
+        {
+          "index": 11,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "service-discovery-gateways",
+      "title": "Service Discovery & Gateways",
+      "module": "Architecture",
+      "moduleNumber": 6,
+      "lessonNumber": 2,
+      "lessonsInModule": 4,
+      "description": "How services find each other when instances come and go — and one front door for everyone outside.",
+      "contentSource": "source-captures/Service Discovery & Gateways · System Design (11_23_2026 12：14：12 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Config",
+          "explanation": "Orders calls Payments"
+        },
+        {
+          "index": 1,
+          "label": "Churn",
+          "explanation": "Instances come and go"
+        },
+        {
+          "index": 2,
+          "label": "Registry",
+          "explanation": "A service registry"
+        },
+        {
+          "index": 3,
+          "label": "Churn again",
+          "explanation": "Instances join and leave by themselves"
+        },
+        {
+          "index": 4,
+          "label": "Who balances",
+          "explanation": "Client-side or server-side?"
+        },
+        {
+          "index": 5,
+          "label": "DNS",
+          "explanation": "Discovery through DNS"
+        },
+        {
+          "index": 6,
+          "label": "Too early",
+          "explanation": "Case: traffic before it’s ready"
+        },
+        {
+          "index": 7,
+          "label": "Ready",
+          "explanation": "Readiness, slow start and draining"
+        },
+        {
+          "index": 8,
+          "label": "Registry down",
+          "explanation": "What if the registry goes down?"
+        },
+        {
+          "index": 9,
+          "label": "Plumbing",
+          "explanation": "Every team rebuilds the same plumbing"
+        },
+        {
+          "index": 10,
+          "label": "Mesh",
+          "explanation": "A service mesh: sidecars do it"
+        },
+        {
+          "index": 11,
+          "label": "Gateway",
+          "explanation": "At the edge: an API gateway"
+        },
+        {
+          "index": 12,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "sagas-distributed-transactions",
+      "title": "Sagas & Distributed Transactions",
+      "module": "Architecture",
+      "moduleNumber": 6,
+      "lessonNumber": 3,
+      "lessonsInModule": 4,
+      "description": "One action, several services, several databases: how to keep it all-or-nothing without one big transaction.",
+      "contentSource": "source-captures/Sagas & Distributed Transactions · System Design (11_23_2026 12：14：20 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Half a trip",
+          "explanation": "One trip, three databases"
+        },
+        {
+          "index": 1,
+          "label": "2PC",
+          "explanation": "Two-phase commit"
+        },
+        {
+          "index": 2,
+          "label": "Blocked",
+          "explanation": "When the coordinator dies"
+        },
+        {
+          "index": 3,
+          "label": "Saga",
+          "explanation": "A saga: commit step by step, undo on failure"
+        },
+        {
+          "index": 4,
+          "label": "Orchestration",
+          "explanation": "Orchestration: one service runs the saga"
+        },
+        {
+          "index": 5,
+          "label": "Choreography",
+          "explanation": "Choreography: services react to events"
+        },
+        {
+          "index": 6,
+          "label": "In between",
+          "explanation": "The catch: no isolation"
+        },
+        {
+          "index": 7,
+          "label": "Resume",
+          "explanation": "Case: crash and resume"
+        },
+        {
+          "index": 8,
+          "label": "Undo fails",
+          "explanation": "Case: the undo itself fails"
+        },
+        {
+          "index": 9,
+          "label": "Unknown",
+          "explanation": "Case: a timeout means “unknown”"
+        },
+        {
+          "index": 10,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "batch-stream-processing",
+      "title": "Batch & Stream Processing",
+      "module": "Architecture",
+      "moduleNumber": 6,
+      "lessonNumber": 4,
+      "lessonsInModule": 4,
+      "description": "Crunching billions of events: overnight in big batches, or continuously as they arrive.",
+      "contentSource": "source-captures/Batch & Stream Processing · System Design (11_23_2026 12：14：32 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Live DB",
+          "explanation": "Analytics on the production database"
+        },
+        {
+          "index": 1,
+          "label": "Batch",
+          "explanation": "Batch: collect now, compute later"
+        },
+        {
+          "index": 2,
+          "label": "Map/reduce",
+          "explanation": "Split the work: map, shuffle, reduce"
+        },
+        {
+          "index": 3,
+          "label": "Skew",
+          "explanation": "Case: one video, one exhausted reducer"
+        },
+        {
+          "index": 4,
+          "label": "Combine",
+          "explanation": "Combine early, split hot keys"
+        },
+        {
+          "index": 5,
+          "label": "Too late",
+          "explanation": "A day late is too late"
+        },
+        {
+          "index": 6,
+          "label": "Stream",
+          "explanation": "Stream processing: compute as events arrive"
+        },
+        {
+          "index": 7,
+          "label": "Windows",
+          "explanation": "Counting in windows"
+        },
+        {
+          "index": 8,
+          "label": "Late events",
+          "explanation": "Case: late and duplicate events"
+        },
+        {
+          "index": 9,
+          "label": "Lag",
+          "explanation": "Case: the processor falls behind"
+        },
+        {
+          "index": 10,
+          "label": "Partitions",
+          "explanation": "Scale out across partitions"
+        },
+        {
+          "index": 11,
+          "label": "Unique",
+          "explanation": "Case: counting unique viewers"
+        },
+        {
+          "index": 12,
+          "label": "Both",
+          "explanation": "Batch and stream, together"
+        },
+        {
+          "index": 13,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "authentication",
+      "title": "Authentication",
+      "module": "Security",
+      "moduleNumber": 7,
+      "lessonNumber": 1,
+      "lessonsInModule": 3,
+      "description": "Proving who someone is — without becoming the reason their password leaks.",
+      "contentSource": "source-captures/Authentication · System Design (11_23_2026 12：14：53 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Plain text",
+          "explanation": "A table full of passwords"
+        },
+        {
+          "index": 1,
+          "label": "Hashing",
+          "explanation": "Store a slow, salted hash"
+        },
+        {
+          "index": 2,
+          "label": "Session",
+          "explanation": "After login: a session"
+        },
+        {
+          "index": 3,
+          "label": "Reset",
+          "explanation": "Case: the forgotten-password flow"
+        },
+        {
+          "index": 4,
+          "label": "Stuffing",
+          "explanation": "Credential stuffing"
+        },
+        {
+          "index": 5,
+          "label": "Slow down",
+          "explanation": "Make guessing expensive"
+        },
+        {
+          "index": 6,
+          "label": "2nd factor",
+          "explanation": "A second factor"
+        },
+        {
+          "index": 7,
+          "label": "Phishing",
+          "explanation": "Case: a perfect fake login page"
+        },
+        {
+          "index": 8,
+          "label": "Passkeys",
+          "explanation": "Passkeys: nothing to type, nothing to steal"
+        },
+        {
+          "index": 9,
+          "label": "Use a provider",
+          "explanation": "Or let an identity provider do it"
+        },
+        {
+          "index": 10,
+          "label": "Tokens",
+          "explanation": "Case: a stolen token"
+        },
+        {
+          "index": 11,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "authorization",
+      "title": "Authorization",
+      "module": "Security",
+      "moduleNumber": 7,
+      "lessonNumber": 2,
+      "lessonsInModule": 3,
+      "description": "Knowing who someone is doesn’t tell you what they may see or do. Checking that, everywhere.",
+      "contentSource": "source-captures/Authorization · System Design (11_23_2026 12：15：24 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Change the URL",
+          "explanation": "Logged in is not the same as allowed"
+        },
+        {
+          "index": 1,
+          "label": "Ownership",
+          "explanation": "Check ownership on every request"
+        },
+        {
+          "index": 2,
+          "label": "Mass assign",
+          "explanation": "Case: “role”: “admin”"
+        },
+        {
+          "index": 3,
+          "label": "Row-level",
+          "explanation": "Let the database enforce tenants too"
+        },
+        {
+          "index": 4,
+          "label": "Roles",
+          "explanation": "Roles: what each kind of user may do"
+        },
+        {
+          "index": 5,
+          "label": "Sharing",
+          "explanation": "Relationships: sharing and teams"
+        },
+        {
+          "index": 6,
+          "label": "Policy",
+          "explanation": "Decide in one place"
+        },
+        {
+          "index": 7,
+          "label": "Master key",
+          "explanation": "Case: a service with keys to everything"
+        },
+        {
+          "index": 8,
+          "label": "Least privilege",
+          "explanation": "Least privilege"
+        },
+        {
+          "index": 9,
+          "label": "Deputy",
+          "explanation": "Case: the confused deputy"
+        },
+        {
+          "index": 10,
+          "label": "On behalf",
+          "explanation": "Act as the user, not as yourself"
+        },
+        {
+          "index": 11,
+          "label": "Audit",
+          "explanation": "Audit logs: who saw what"
+        },
+        {
+          "index": 12,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "encryption-secrets",
+      "title": "Encryption & Secrets",
+      "module": "Security",
+      "moduleNumber": 7,
+      "lessonNumber": 3,
+      "lessonsInModule": 3,
+      "description": "Protecting data on the wire, on disk, and the keys and passwords your services use.",
+      "contentSource": "source-captures/Encryption & Secrets · System Design (11_23_2026 12：15：34 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Café Wi-Fi",
+          "explanation": "Plain HTTP on café Wi-Fi"
+        },
+        {
+          "index": 1,
+          "label": "TLS",
+          "explanation": "TLS: encrypt the wire"
+        },
+        {
+          "index": 2,
+          "label": "Expired",
+          "explanation": "Case: the certificate expired at 3 a.m."
+        },
+        {
+          "index": 3,
+          "label": "Inside too",
+          "explanation": "Encrypt inside the data center too"
+        },
+        {
+          "index": 4,
+          "label": "Stolen backup",
+          "explanation": "The stolen backup"
+        },
+        {
+          "index": 5,
+          "label": "At rest",
+          "explanation": "Encrypt at rest, keep keys elsewhere"
+        },
+        {
+          "index": 6,
+          "label": "Rotation",
+          "explanation": "Rotating keys without re-encrypting everything"
+        },
+        {
+          "index": 7,
+          "label": "Leaked key",
+          "explanation": "Case: a secret in the code"
+        },
+        {
+          "index": 8,
+          "label": "Vault",
+          "explanation": "A secrets manager"
+        },
+        {
+          "index": 9,
+          "label": "Tokenize",
+          "explanation": "Case: card numbers — tokenize them"
+        },
+        {
+          "index": 10,
+          "label": "End-to-end",
+          "explanation": "End-to-end: even the server can’t read it"
+        },
+        {
+          "index": 11,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "testing",
+      "title": "Testing",
+      "module": "Shipping",
+      "moduleNumber": 8,
+      "lessonNumber": 1,
+      "lessonsInModule": 2,
+      "description": "Knowing a change is safe before your users find out — fast tests for the logic, a few slow ones for everything else.",
+      "contentSource": "source-captures/Testing · System Design (11_23_2026 12：15：45 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Is it safe?",
+          "explanation": "Is this change safe?"
+        },
+        {
+          "index": 1,
+          "label": "By hand",
+          "explanation": "Clicking around misses things"
+        },
+        {
+          "index": 2,
+          "label": "Unit tests",
+          "explanation": "Unit tests: one piece, in isolation"
+        },
+        {
+          "index": 3,
+          "label": "Test doubles",
+          "explanation": "Test doubles stand in for the rest"
+        },
+        {
+          "index": 4,
+          "label": "Integration",
+          "explanation": "Integration tests: the real neighbours"
+        },
+        {
+          "index": 5,
+          "label": "Contracts",
+          "explanation": "Contract tests: between teams"
+        },
+        {
+          "index": 6,
+          "label": "End-to-end",
+          "explanation": "End-to-end tests: the whole journey"
+        },
+        {
+          "index": 7,
+          "label": "Pyramid",
+          "explanation": "The test pyramid"
+        },
+        {
+          "index": 8,
+          "label": "Flaky",
+          "explanation": "Case: the flaky test"
+        },
+        {
+          "index": 9,
+          "label": "Load & failure",
+          "explanation": "Testing for load and for failure"
+        },
+        {
+          "index": 10,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "ci-cd-deployments",
+      "title": "CI/CD & Deployments",
+      "module": "Shipping",
+      "moduleNumber": 8,
+      "lessonNumber": 2,
+      "lessonsInModule": 2,
+      "description": "Getting every change to production quickly and safely — and back out again just as quickly.",
+      "contentSource": "source-captures/CI_CD & Deployments · System Design (11_23_2026 12：15：52 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "By hand",
+          "explanation": "Shipping by hand"
+        },
+        {
+          "index": 1,
+          "label": "Friday",
+          "explanation": "“It works on my machine”"
+        },
+        {
+          "index": 2,
+          "label": "CI",
+          "explanation": "Continuous integration"
+        },
+        {
+          "index": 3,
+          "label": "One artifact",
+          "explanation": "Build once, promote the same artifact"
+        },
+        {
+          "index": 4,
+          "label": "CD",
+          "explanation": "Continuous delivery"
+        },
+        {
+          "index": 5,
+          "label": "Blue-green",
+          "explanation": "Blue-green: switch, don’t replace"
+        },
+        {
+          "index": 6,
+          "label": "Canary",
+          "explanation": "Canary: try it on a few users first"
+        },
+        {
+          "index": 7,
+          "label": "Migrations",
+          "explanation": "Case: the migration that breaks the old version"
+        },
+        {
+          "index": 8,
+          "label": "Flags",
+          "explanation": "Feature flags: deploy is not release"
+        },
+        {
+          "index": 9,
+          "label": "Measure",
+          "explanation": "Measure the delivery itself"
+        },
+        {
+          "index": 10,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "hld-lld",
+      "title": "HLD & LLD",
+      "module": "Whole Systems",
+      "moduleNumber": 9,
+      "lessonNumber": 1,
+      "lessonsInModule": 4,
+      "description": "The same system at two zoom levels: the map of services, and the inside of one of them.",
+      "contentSource": "source-captures/HLD & LLD · System Design (11_23_2026 12：16：09 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "Two levels",
+          "explanation": "One system, two zoom levels"
+        },
+        {
+          "index": 1,
+          "label": "The map",
+          "explanation": "High-level design: the map"
+        },
+        {
+          "index": 2,
+          "label": "Trade-offs",
+          "explanation": "HLD decisions are trade-offs"
+        },
+        {
+          "index": 3,
+          "label": "Zoom in",
+          "explanation": "Low-level design: inside one box"
+        },
+        {
+          "index": 4,
+          "label": "LLD decisions",
+          "explanation": "LLD decisions: states, schemas, edge cases"
+        },
+        {
+          "index": 5,
+          "label": "Contracts",
+          "explanation": "Where they meet: contracts"
+        },
+        {
+          "index": 6,
+          "label": "Top-down",
+          "explanation": "Case: designing at the wrong level"
+        },
+        {
+          "index": 7,
+          "label": "Recap",
+          "explanation": "Recap"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "design-a-url-shortener",
+      "title": "Design a URL Shortener",
+      "module": "Whole Systems",
+      "moduleNumber": 9,
+      "lessonNumber": 2,
+      "lessonsInModule": 4,
+      "description": "A first end-to-end design: from a one-line brief to a system that serves billions of redirects.",
+      "contentSource": "source-captures/Design a URL Shortener · System Design (11_23_2026 12：16：29 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "The brief",
+          "explanation": "The brief: a link shortener"
+        },
+        {
+          "index": 1,
+          "label": "Numbers",
+          "explanation": "Put numbers on it"
+        },
+        {
+          "index": 2,
+          "label": "First draft",
+          "explanation": "The simplest thing that works"
+        },
+        {
+          "index": 3,
+          "label": "Hash it?",
+          "explanation": "Where do codes come from? Try a hash"
+        },
+        {
+          "index": 4,
+          "label": "Count it",
+          "explanation": "Count, then encode"
+        },
+        {
+          "index": 5,
+          "label": "Guessable",
+          "explanation": "Case: codes you can count"
+        },
+        {
+          "index": 6,
+          "label": "Cache",
+          "explanation": "Reads dominate: cache them"
+        },
+        {
+          "index": 7,
+          "label": "301 or 302",
+          "explanation": "Which redirect: 301 or 302?"
+        },
+        {
+          "index": 8,
+          "label": "Storage",
+          "explanation": "Three terabytes of keys: spread them out"
+        },
+        {
+          "index": 9,
+          "label": "Clicks",
+          "explanation": "Counting clicks without slowing them"
+        },
+        {
+          "index": 10,
+          "label": "Abuse",
+          "explanation": "Case: spammers love shorteners"
+        },
+        {
+          "index": 11,
+          "label": "Recap",
+          "explanation": "The finished design"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "design-a-news-feed",
+      "title": "Design a News Feed",
+      "module": "Whole Systems",
+      "moduleNumber": 9,
+      "lessonNumber": 3,
+      "lessonsInModule": 4,
+      "description": "Posts from everyone you follow, in 200 ms — and the question of when to do the work.",
+      "contentSource": "source-captures/Design a News Feed · System Design (11_23_2026 12：16：42 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "The brief",
+          "explanation": "The brief: a home feed"
+        },
+        {
+          "index": 1,
+          "label": "Numbers",
+          "explanation": "Put numbers on it"
+        },
+        {
+          "index": 2,
+          "label": "Pull",
+          "explanation": "First draft: build the feed when it’s asked for"
+        },
+        {
+          "index": 3,
+          "label": "Wrong side",
+          "explanation": "The work lands on the wrong side"
+        },
+        {
+          "index": 4,
+          "label": "Push",
+          "explanation": "Flip it: deliver posts when they’re written"
+        },
+        {
+          "index": 5,
+          "label": "Ids only",
+          "explanation": "Store ids, not posts"
+        },
+        {
+          "index": 6,
+          "label": "Celebrity",
+          "explanation": "Case: fifty million followers"
+        },
+        {
+          "index": 7,
+          "label": "Hybrid",
+          "explanation": "Hybrid: push for most, pull for the famous"
+        },
+        {
+          "index": 8,
+          "label": "Idle users",
+          "explanation": "Case: feeds nobody reads"
+        },
+        {
+          "index": 9,
+          "label": "Scrolling",
+          "explanation": "Scrolling: cursors, not page numbers"
+        },
+        {
+          "index": 10,
+          "label": "Cache lost",
+          "explanation": "Case: the feed cache is wiped"
+        },
+        {
+          "index": 11,
+          "label": "Recap",
+          "explanation": "The finished design"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    },
+    {
+      "id": "design-a-chat-system",
+      "title": "Design a Chat System",
+      "module": "Whole Systems",
+      "moduleNumber": 9,
+      "lessonNumber": 4,
+      "lessonsInModule": 4,
+      "description": "Twenty million open connections, and a promise: every message arrives, in order, exactly once.",
+      "contentSource": "source-captures/Design a Chat System · System Design (11_23_2026 12：16：51 AM).html",
+      "assets": "Inline SVG and diagram markup in source capture; full animated scenes in bundled runtime",
+      "animationConfiguration": "Original bundled lesson scene and timeline implementation",
+      "stages": [
+        {
+          "index": 0,
+          "label": "The brief",
+          "explanation": "The brief: a chat app"
+        },
+        {
+          "index": 1,
+          "label": "Numbers",
+          "explanation": "Put numbers on it"
+        },
+        {
+          "index": 2,
+          "label": "One server",
+          "explanation": "First draft: one server, two sockets"
+        },
+        {
+          "index": 3,
+          "label": "Where is Bob?",
+          "explanation": "A hundred servers: where is Bob?"
+        },
+        {
+          "index": 4,
+          "label": "Registry",
+          "explanation": "A registry of who is connected where"
+        },
+        {
+          "index": 5,
+          "label": "Store first",
+          "explanation": "Write it down before you pass it on"
+        },
+        {
+          "index": 6,
+          "label": "Offline",
+          "explanation": "Case: Bob is in a tunnel"
+        },
+        {
+          "index": 7,
+          "label": "Duplicates",
+          "explanation": "Case: sent twice, shown once"
+        },
+        {
+          "index": 8,
+          "label": "Groups",
+          "explanation": "Group chats: store once, deliver to many"
+        },
+        {
+          "index": 9,
+          "label": "Presence",
+          "explanation": "“Online” and “typing…” play by other rules"
+        },
+        {
+          "index": 10,
+          "label": "Gateway dies",
+          "explanation": "Case: a gateway dies"
+        },
+        {
+          "index": 11,
+          "label": "Recap",
+          "explanation": "The finished design"
+        }
+      ],
+      "completionStatus": "tracked locally by original runtime",
+      "duplicateCaptures": []
+    }
+  ]
+}

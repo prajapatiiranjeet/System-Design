@@ -1,0 +1,89 @@
+{
+  "summary": "Call struggling services safely: stop waiting in time, retry carefully, and know when to stop.",
+  "goals": [
+    "How one slow service can spread failure",
+    "How timeouts and fallbacks protect callers",
+    "How retries can cause storms",
+    "How backoff, jitter, and circuit breakers help",
+    "How idempotency, deadlines, and bulkheads limit damage"
+  ],
+  "steps": [
+    {
+      "title": "A slow service can stall its caller",
+      "body": [
+        "The payment service used to answer in 50 ms but now takes 30 seconds. The order service calls it and waits without a limit. Each waiting call holds a thread. Soon all 200 threads are stuck, and the order service cannot even serve pages that do not need payments. One slow dependency has caused a wider outage."
+      ],
+      "callout": "This is a <span class=\"term\">cascading failure</span>: a problem spreads to other services that wait without limits."
+    },
+    {
+      "title": "Set a timeout and a fallback",
+      "body": [
+        "Give every outgoing call a <span class=\"term\">timeout</span>. If payments has not answered in 800 ms, stop waiting and free the thread. Then use a fallback: accept the order as “payment pending” and charge it shortly afterward. The order service can keep serving other pages."
+      ],
+      "callout": "Choose timeouts based on real response times: a little above the dependency’s p99, and shorter than the timeout set by the caller above you."
+    },
+    {
+      "title": "Retry brief failures",
+      "body": [
+        "Some failures are temporary: a dropped network packet, a restarting server, or a brief disruption. Trying once more a moment later may succeed. In this example, one retry turns many temporary failures into successful checkouts."
+      ],
+      "callout": "Retry errors that may work next time, such as a timeout or 503. Retrying a 400 Bad Request usually repeats the same failure."
+    },
+    {
+      "title": "Retries can overwhelm a service",
+      "body": [
+        "Now payments is truly overloaded. Every caller retries three times right away. Each failed request can create four requests total, so payments gets four times its normal traffic. It cannot recover while retries keep arriving. A retry storm can make clients behave like a denial-of-service attack."
+      ],
+      "callout": "Retries multiply across layers too. Three retries at each of three layers can create up to 64 calls for one user action."
+    },
+    {
+      "title": "Wait longer and add randomness",
+      "body": [
+        "Wait before retrying, and increase the wait each time: 100 ms, then 200, then 400. This is <span class=\"term\">exponential backoff</span>. Add random <span class=\"term\">jitter</span> so many clients do not retry together. Limit the number of attempts and the share of traffic that may be retries—for example, a 10% retry budget. This gives payments time to recover."
+      ],
+      "callout": "Cloud software libraries often include backoff and jitter. Check that it is enabled and that retries are not stacked at several layers."
+    },
+    {
+      "title": "Stop calling a service that is down",
+      "body": [
+        "Payments goes fully down. Even with a timeout, every request wastes 800 ms finding out. A <span class=\"term\">circuit breaker</span> tracks failures. After a threshold it <b>opens</b> and fails calls quickly without contacting payments. Every 30 seconds it allows one test call through in the <b>half-open</b> state. If that call works, the breaker closes and normal traffic resumes."
+      ],
+      "callout": "Like a circuit breaker in a home, it trips to protect the rest of the system and resets after the fault is fixed."
+    },
+    {
+      "title": "Restore traffic gradually",
+      "body": [
+        "Payments recovers. The next test call succeeds, so the breaker closes. Traffic returns gradually instead of flooding the service as soon as it is back. Meanwhile, a queue charges orders that were marked “payment pending.” No order was lost, and other pages stayed available."
+      ],
+      "callout": "Libraries such as Resilience4j and Polly, and service meshes such as Envoy or Istio, can provide timeouts, retries, and circuit breakers."
+    },
+    {
+      "title": "Use an idempotency key",
+      "body": [
+        "Payments charges a card, but its response is lost on the way back. The order service times out and retries. Without protection, the customer is charged twice. Send a unique <span class=\"term\">idempotency key</span> for the order with every attempt. Payments remembers the result for each key and returns the same result for duplicates instead of charging again."
+      ],
+      "callout": "Any operation that may be retried should be <b>idempotent</b>: repeating it has the same effect as doing it once."
+    },
+    {
+      "title": "Pass a deadline through the call chain",
+      "body": [
+        "The shopper’s browser gives up after two seconds. If the order service has already spent 1.8 seconds, asking payments to start a fresh 800 ms of work is wasted; the user will never see the answer. Pass a <span class=\"term\">deadline</span> with each request, such as “answer by 12:00:02.000.” Each service checks the remaining time and passes it on. If no time remains, stop."
+      ],
+      "callout": "gRPC can pass deadlines automatically. With HTTP, a service can pass the remaining time in a header."
+    },
+    {
+      "title": "Give each dependency its own pool",
+      "body": [
+        "When payments was slow, it used all 200 order-service threads. The order service can give each dependency a separate pool—for example, 40 threads for payments, 40 for inventory, and the rest for other work. If payments slows down, only its 40 threads fill up. Browsing, search, and the cart can keep working. This is the <span class=\"term\">bulkhead</span> pattern, named after the partitions in a ship."
+      ],
+      "callout": "Timeouts limit how long a call can hurt you. Bulkheads limit how many calls can."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Every remote call needs a <b>timeout</b> and a useful fallback.</li><li>Retry temporary failures with <b>exponential backoff</b>, <b>jitter</b>, and a limit.</li><li>A <b>circuit breaker</b> stops repeated calls to a failed service.</li><li>Make retried operations <b>idempotent</b>.</li><li>Pass <b>deadlines</b> and isolate dependencies with <b>bulkheads</b>.</li></ul>"
+      ],
+      "callout": "Next: <b>Observability</b> — how to find out that payments is slow in the first place."
+    }
+  ]
+}

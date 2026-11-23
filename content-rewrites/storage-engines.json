@@ -1,0 +1,103 @@
+{
+  "summary": "See how database storage engines save data safely, and why some handle reads or writes better.",
+  "goals": [
+    "Why a database uses a write-ahead log",
+    "How fsync, group commit, and checkpoints affect writes",
+    "How a B-tree engine reads and writes data",
+    "How an LSM-tree uses memtables, sorted files, filters, and compaction",
+    "How to choose between B-trees, LSM-trees, row stores, and column stores"
+  ],
+  "steps": [
+    {
+      "title": "Fast memory and durable disk",
+      "body": [
+        "A database server can keep data in two places. <b>Memory</b> is very fast—an access may take nanoseconds—but its contents disappear if the process stops or power is lost. <b>Disk</b> keeps data through a crash, but making sure a write reached the device can take much longer. The database uses <code>fsync</code> to ask the operating system to confirm that data is on disk. A <span class=\"term\">storage engine</span> decides how the database uses memory and disk to make writes fast and safe."
+      ],
+      "callout": "Data is stored in fixed-size <b>pages</b>, often 8 or 16 KB and holding many rows. The engine keeps frequently used pages in memory and reads other pages from disk when needed."
+    },
+    {
+      "title": "Fast, but not safe: memory first",
+      "body": [
+        "A simple engine could change a page in memory, reply “saved,” and copy the page to disk every few seconds. Writes would be fast, but a power failure would erase changes made since the last copy—including orders users were told had succeeded. A failure during a write could also leave a partly written page that cannot be read. This is a <span class=\"term\">torn page</span>."
+      ],
+      "callout": "When a database says “saved,” it should mean the change survives a crash. This is <b>durability</b>, the D in ACID."
+    },
+    {
+      "title": "Record the change before replying",
+      "body": [
+        "Writing a whole 8 KB page before every reply would be safe but slow, even when the change is only one 100-byte row. Instead, first append a short description of the change to a log file and use <code>fsync</code> to confirm it reached disk. This is the <span class=\"term\">write-ahead log</span> (WAL). Appending to the end of a file is efficient. The database can update its in-memory pages now and copy them to their normal disk locations later. <small>The speeds shown are for one ordinary SSD. Your device may differ; the relative trade-offs are what matter.</small>"
+      ],
+      "callout": "After a crash, the engine replays the log to restore changes it had confirmed. The log is the record of truth; the pages are a convenient copy of that data."
+    },
+    {
+      "title": "How often must the disk confirm?",
+      "body": [
+        "On an SSD, waiting for the log to reach disk takes a fraction of a millisecond. By default, a database may do this for each transaction. At thousands of commits per second, that wait can become the limit. <span class=\"term\">Group commit</span> lets several transactions that arrive together share one <code>fsync</code>. Some databases can also sync on a timer, such as every 100 ms or every second. This can increase throughput, but a crash may lose the newest writes that were not yet synced."
+      ],
+      "callout": "Know the setting your database uses. Redis in append-only mode syncs once a second by default. PostgreSQL with <code>synchronous_commit = off</code> and MySQL with <code>innodb_flush_log_at_trx_commit = 2</code> can also lose the newest writes after a power cut."
+    },
+    {
+      "title": "Keep the log from growing forever",
+      "body": [
+        "The log keeps every change, so it would grow without limit if the database never cleaned it up. Recovery would also take longer because the engine would have to replay the whole log. Every few minutes, the engine takes a <span class=\"term\">checkpoint</span>: it copies changed pages into the data files, records how far it got, and can then remove older log entries. After a crash, the database only needs to replay changes since the last checkpoint."
+      ],
+      "callout": "A checkpoint writes many changed pages to different disk locations. Databases spread this work out; if it falls behind, users may see periodic slowdowns."
+    },
+    {
+      "title": "B-trees: update the page in place",
+      "body": [
+        "PostgreSQL, MySQL with InnoDB, SQL Server, and Oracle use this classic design. Data sits in fixed-size pages, located with <b>B-trees</b> (see <em>Indexes</em>); in some databases the table itself is a B-tree. To change a row, the engine finds its page and updates that page <em>in place</em>. The write-ahead log protects the change. Reads are predictable: finding a row takes about three or four page reads, often from memory. Nearby keys are stored on nearby pages, so reading a range is efficient."
+      ],
+      "callout": "Each row has a known place. That makes reads predictable, but every write must find and update that place."
+    },
+    {
+      "title": "When many small writes arrive",
+      "body": [
+        "Now imagine sensors, chat messages, or clicks arriving as 200,000 small writes per second, each for a different key. Each change affects a different page. The database keeps those changed pages in memory, then eventually writes each whole page back to its place on disk—even if only a few bytes changed. The log can keep up because it is written in order. The scattered page writes cannot, so checkpoints fall behind."
+      ],
+      "callout": "This is <b>write amplification</b>: saving 100 bytes can require writing a log record and an 8 KB page. A write-heavy workload can make the disk write many times more data than the app sent."
+    },
+    {
+      "title": "LSM-trees: write sorted files in batches",
+      "body": [
+        "A different design avoids finding and changing a row’s disk page. A write goes into the log and a sorted structure in memory called a <span class=\"term\">memtable</span>. When the memtable fills, the database writes it to disk in one ordered pass as an immutable sorted file called an <span class=\"term\">SSTable</span>, then starts a new memtable. This is a <span class=\"term\">log-structured merge tree</span> (LSM-tree), used by Cassandra, HBase, ScyllaDB, and RocksDB."
+      ],
+      "callout": "An update creates a newer value for the same key. A delete creates a marker called a <b>tombstone</b>. Existing files are not changed in place."
+    },
+    {
+      "title": "Finding a key across several files",
+      "body": [
+        "Reading can now take more work. The latest value for a key might be in memory or in any SSTable. The engine checks files from newest to oldest. To avoid reading every file, each SSTable has a <b>Bloom filter</b> that can say the key is definitely not there, plus a small index that points to the right key range. A typical lookup can then read from one file."
+      ],
+      "callout": "B-trees do more work during writes so reads stay predictable. LSM-trees keep writes simple, but may need more work to read. Every storage engine makes a trade-off between the two."
+    },
+    {
+      "title": "Merge files in the background",
+      "body": [
+        "SSTables pile up, and older files may contain values that have since changed or been deleted. A background process called <span class=\"term\">compaction</span> merges sorted files: it reads a few files, writes a new file with only the latest value for each key, then removes the old files. This limits how many files a read must check and frees space. The cost is that data is rewritten several times and compaction shares disk time with live requests."
+      ],
+      "callout": "If writes arrive faster than compaction can process them, files pile up, reads slow down, and the disk can fill. Watch the compaction backlog."
+    },
+    {
+      "title": "B-tree or LSM-tree?",
+      "body": [
+        "<table class=\"compare\"><thead><tr><th></th><th>B-tree</th><th>LSM-tree</th></tr></thead><tbody><tr><td>Writes</td><td>Scattered page updates</td><td>Sequential appends</td></tr><tr><td>Reads</td><td>A few pages, predictable</td><td>Several files; filters help</td></tr><tr><td>Space</td><td>Pages left part-empty</td><td>Compact, compresses well</td></tr><tr><td>Background</td><td>Checkpoints</td><td>Compaction</td></tr><tr><td>Examples</td><td>PostgreSQL, MySQL</td><td>Cassandra, RocksDB</td></tr></tbody></table>For frequent reads, range queries, and transactions, a B-tree may fit well. For a huge workload with many writes that mostly add new records, an LSM-tree may fit better. Some SQL databases, including CockroachDB, TiDB, and MyRocks, use an LSM-tree underneath."
+      ],
+      "callout": "You usually choose a database, not its storage engine directly. Knowing the engine helps explain how the database behaves under load."
+    },
+    {
+      "title": "Store rows or columns?",
+      "body": [
+        "Both designs so far store each <b>row</b> together. That works well when the app reads or changes whole records. But an analyst may ask <code>SELECT SUM(price) FROM orders</code> across two billion rows. A row store may have to read all 40 columns in every row to add up one column. A <span class=\"term\">column store</span> keeps each column separately, so this query reads only <code>price</code>—about one-fortieth of the data. Similar values also compress well. This is how warehouses such as BigQuery, Snowflake, Redshift, and ClickHouse scan billions of rows quickly."
+      ],
+      "callout": "Row stores suit apps with many small reads and writes. Column stores suit analytics with a few very large scans. Systems often copy data from one to the other; see <em>Batch &amp; Stream Processing</em>."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Memory is fast but temporary; disk is slower and keeps data through a crash. The storage engine works between them.</li><li>The <b>write-ahead log</b> records a change on disk before the database confirms it.</li><li>How often the database waits for <b>fsync</b> affects both speed and what may be lost in a crash.</li><li><b>B-trees</b> update pages in place: reads are predictable, writes can be scattered.</li><li><b>LSM-trees</b> append writes: writes are fast, while reads and compaction need extra work.</li><li><b>Column stores</b> read only the columns an analytics query needs.</li></ul>"
+      ],
+      "callout": "Next: <b>Replication</b> — what to do when one database server cannot handle all the reads or might fail."
+    }
+  ]
+}

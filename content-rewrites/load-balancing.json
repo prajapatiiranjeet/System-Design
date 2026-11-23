@@ -1,0 +1,66 @@
+{
+  "summary": "Give a group of servers one address, then decide which server handles each request.",
+  "goals": [
+    "Why a group of servers needs one front door",
+    "Round robin vs. least connections",
+    "How health checks route around a failed server",
+    "How to avoid a single point of failure in the load balancer",
+    "How layer 7 routing and gradual deploys work"
+  ],
+  "steps": [
+    {
+      "callout": "Adding servers helps only when requests are spread across them."
+    },
+    {
+      "callout": "The servers behind a load balancer are its <b>pool</b> (also called a target group)."
+    },
+    {
+      "body": [
+        "How does the load balancer (LB) choose a server? The simplest rule is <span class=\"term\">round robin</span>: A, then B, then C, then A again. It is simple and shares requests evenly when servers have similar power and requests take about the same amount of work."
+      ],
+      "callout": "<b>Weighted round robin</b> sends a larger share to stronger servers. For example, A : B : C = 2 : 1 : 1."
+    },
+    {
+      "callout": "Round robin counts requests. It does not know how much work each request takes."
+    },
+    {
+      "callout": "Other choices include <b>least response time</b>, <b>IP hash</b> (send the same client to the same server), and <b>power of two choices</b> (sample two servers and pick the less busy one)."
+    },
+    {
+      "callout": "A <b>single point of failure</b> (SPOF) is one component whose failure can stop the service. Health checks help avoid a single failed server becoming one."
+    },
+    {
+      "body": [
+        "We removed one single point of failure and created another. Every request now passes through one load balancer. If it fails, users cannot reach the healthy servers behind it."
+      ],
+      "callout": "Any component every request depends on needs a backup."
+    },
+    {
+      "callout": "Cloud load balancers, such as AWS ELB and Google Cloud Load Balancing, run across multiple machines and zones for you."
+    },
+    {
+      "body": [
+        "The active load balancer fails. The standby notices that heartbeats stopped, takes over the virtual IP, and starts forwarding traffic. Clients keep using the same address. A few requests already in progress may need to be retried."
+      ],
+      "callout": "This is <b>active–passive failover</b>: a standby takes over when the active component fails. The same pattern can protect databases, caches, and queues."
+    },
+    {
+      "body": [
+        "There are two kinds of load balancer. A <b>layer 4</b> balancer sees IP addresses and ports, then forwards connections. A <b>layer 7</b> balancer can read the HTTP request. It can route by URL path: <code>/api/*</code> to API servers and <code>/images/*</code> to an image service. Each group can be scaled and deployed separately."
+      ],
+      "callout": "Layer 7 balancers can also route by host name, header, or cookie. They can handle TLS encryption, caching, or compression."
+    },
+    {
+      "body": [
+        "Time to release version 2. A <span class=\"term\">rolling deploy</span> updates one server at a time. First, the load balancer <b>drains</b> that server: it sends no new requests there, but lets requests already running finish. The server is updated, checked for health, and added back. Here C has version 2, B is draining, and A is waiting. Users should not see an error."
+      ],
+      "callout": "With a <b>blue-green deploy</b>, bring up a complete version 2 pool, switch traffic to it, and switch back if something goes wrong."
+    },
+    {
+      "body": [
+        "<ul class=\"takeaways\"><li>A load balancer gives a server pool <b>one stable address</b>.</li><li><b>Round robin</b> is simple; <b>least connections</b> adapts when requests take different amounts of time.</li><li><b>Health checks</b> remove failed servers from the pool.</li><li>The load balancer also needs redundancy: use <b>active–passive failover</b> with a shared virtual IP.</li><li><b>Layer 7</b> balancers can route by path; <b>draining</b> helps deploy without interrupting requests.</li></ul>"
+      ],
+      "callout": "Next: <b>Stateless Services</b> — what happens when a user’s next request reaches a different server."
+    }
+  ]
+}

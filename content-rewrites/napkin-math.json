@@ -1,0 +1,83 @@
+{
+  "summary": "Use quick estimates to turn a product idea into rough needs for servers, storage, and network capacity.",
+  "goals": [
+    "Turn daily users and actions into requests per second.",
+    "Estimate peak traffic instead of planning only for the average.",
+    "Estimate the number of servers and amount of storage.",
+    "Estimate network traffic and cache memory.",
+    "Remember a few useful time and capacity estimates."
+  ],
+  "steps": [
+    {
+      "title": "Start with the size of the problem",
+      "body": [
+        "You are designing PhotoShare. Before choosing technology, estimate the size of the job: could one server handle it, or might you need many?",
+        "The answer does not need to be exact. You need the right <span class=\"term\">order of magnitude</span>—for example, tens of servers rather than one or ten thousand. Napkin math gives you a quick estimate."
+      ],
+      "callout": "Engineers and interviewers start with rough numbers, then choose a design that can handle them."
+    },
+    {
+      "title": "Turn daily activity into requests per second",
+      "body": [
+        "Start with users and how often they use the app. If 10 million users each make 20 requests, that is 200 million requests per day.",
+        "A day has 86,400 seconds, so the average is about 2,300 requests per second. For faster mental math, round a day to 100,000 seconds; that gives a rough estimate of 2,000 requests per second."
+      ],
+      "callout": "A quick conversion: one million requests per day is about 12 requests per second."
+    },
+    {
+      "title": "Plan for the busy hour",
+      "body": [
+        "Traffic is not flat all day. More people may use the app in the evening or during a big event. A common rough estimate is that the peak is two to three times the daily average.",
+        "Using the more precise average of about 2,300 requests per second, a 3× peak is about 7,000 requests per second. At that load, one server is clearly not enough."
+      ],
+      "callout": "A system sized only for its average load may fail when most users want it at the same time."
+    },
+    {
+      "title": "Estimate the number of servers",
+      "body": [
+        "A load test shows that one server can handle about 1,000 requests per second. The peak is about 7,000, so the basic estimate is seven servers.",
+        "Add room for bursts and for a server failure. Plan for about 10 servers. This estimate uses a measured server capacity, not a guess."
+      ],
+      "callout": "A <span class=\"term\">load balancer</span> sends requests across these servers. See Module 02 for how it works."
+    },
+    {
+      "title": "Estimate storage growth",
+      "body": [
+        "Photos take most of the space. If users upload one million photos a day and each is 2 MB, that is about 2 TB of new data each day. Over a year, that is about 730 TB.",
+        "If the system keeps three copies of the data so it can survive a disk failure, plan for about 2 PB in the first year. That is far too much for one database server."
+      ],
+      "callout": "Stored data keeps growing. Daily request traffic rises and falls, but yesterday’s photos still need space."
+    },
+    {
+      "title": "Estimate network traffic",
+      "body": [
+        "Uploads are the smaller part: 2 TB per day is about 20 MB per second coming in. Views send much more data out. If each user views 100 photos per day and each thumbnail is 200 KB, that is 200 TB per day going out.",
+        "Divide by about 100,000 seconds and the average is roughly 2 GB per second, or 16 Gbit/s. Peak traffic will be higher. Ten web servers should not have to send all those images themselves; a CDN can serve copies closer to users."
+      ],
+      "callout": "For apps with lots of images or video, outgoing network traffic can become a limit before the CPUs do. Estimate bytes sent, not just requests."
+    },
+    {
+      "title": "Estimate the cache size",
+      "body": [
+        "A feed often reads profile details and photo information again and again. Could a cache keep the most-used data in memory? Ten million profiles at 2 KB each use about 20 GB. One million new photo records at 1 KB each use about 1 GB.",
+        "That is about 21 GB. It can fit in one cache server’s memory, with a second server as a backup. The estimate does not require an unusual design."
+      ],
+      "callout": "A rough estimate can show that a problem is smaller than it first seemed. That is useful too."
+    },
+    {
+      "title": "Keep a few useful numbers in mind",
+      "body": [
+        "A few approximate times help compare choices. These are ballpark figures; real hardware and networks vary.",
+        "<table class=\"compare numbers\"><tbody><tr><td>Read from memory</td><td>about 100 ns</td></tr><tr><td>Read from SSD</td><td>about 100 µs</td></tr><tr><td>Round trip within one data center</td><td>about 0.5 ms</td></tr><tr><td>Round trip across an ocean</td><td>about 75–150 ms</td></tr><tr><td>Seconds in a day</td><td>about 100,000</td></tr></tbody></table>"
+      ],
+      "callout": "Remember the scale of each number, not every digit. That is enough for a useful first estimate."
+    },
+    {
+      "title": "Recap: estimate before you build",
+      "body": [
+        "<ul class=\"takeaways\"><li><b>Users × actions ÷ 100,000 seconds</b> gives a rough average requests-per-second estimate.</li><li>Multiply by <b>2–3</b> for a rough peak, then plan for that peak.</li><li><b>Servers = peak traffic ÷ measured capacity per server</b>, plus spare capacity.</li><li><b>Storage = items per day × size per item × 365 × number of copies.</b></li><li>Estimate <b>network bytes</b> and <b>memory</b> too. They can shape the design.</li></ul>"
+      ],
+      "callout": "That finishes Foundations. Next: Vertical vs Horizontal Scaling compares a bigger machine with more machines."
+    }
+  ]
+}

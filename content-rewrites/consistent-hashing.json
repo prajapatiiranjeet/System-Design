@@ -1,0 +1,82 @@
+{
+  "summary": "Add or remove servers while moving only the keys that need a new home.",
+  "goals": [
+    "Why hash modulo N moves most keys when N changes",
+    "How servers and keys are placed on a hash ring",
+    "How adding or removing a server moves one part of the ring",
+    "How virtual nodes balance the load",
+    "How to store copies around the ring and use it for caches"
+  ],
+  "steps": [
+    {
+      "title": "Changing N remaps most keys",
+      "body": [
+        "With <code>shard = hash(key) % N</code>, changing four shards to five changes the destination for about 80% of keys. Nearly all the data may need to move. We want a method where a new server takes only the keys in its share of the data—about 1/N when the load is balanced."
+      ],
+      "callout": "The idea is to choose a key’s server without using the number of servers."
+    },
+    {
+      "title": "Make the hash values a ring",
+      "body": [
+        "A <span class=\"term\">hash function</span> turns a name or key into a number. Imagine all possible hash values arranged in a circle, with the largest value connected back to zero. This is a <span class=\"term\">hash ring</span>. Hash each server’s name too, then place it at that point on the ring. The hash decides its location, so servers may not be evenly spaced."
+      ],
+      "callout": "The server’s location does not depend on how many servers are in the system."
+    },
+    {
+      "title": "Give each key the next server",
+      "body": [
+        "Hash each data key onto the same ring. Starting from the key’s position, move clockwise to the first server. That server owns the key. The colored arcs show each server’s share; each dot is a key. To find a server, clients can search a sorted list of server positions with binary search."
+      ],
+      "callout": "Hash the key, move clockwise, and stop at the first server."
+    },
+    {
+      "title": "One new server takes one arc",
+      "body": [
+        "Server E joins the ring between C and B. It takes the keys in the arc just before its position—the keys that used to pass E and go to C. All other keys keep their current server. The pulsing keys are the ones that move."
+      ],
+      "callout": "With an even share, adding a fifth server moves about one-fifth of the keys."
+    },
+    {
+      "title": "Removing a server moves one arc",
+      "body": [
+        "Return to four servers, then remove C. Keys that belonged to C continue clockwise to D. The other keys stay where they are. With <code>% N</code>, removing a server would change the destination for almost every key."
+      ],
+      "callout": "Dynamo, Cassandra, caches, and CDNs use this approach or a close relative. Rendezvous and jump hashing can get a similar result without using a ring."
+    },
+    {
+      "title": "Random positions can be uneven",
+      "body": [
+        "A server’s hash determines its position, so the ring arcs can have different sizes. After C leaves, D owns a much larger arc and receives more keys and traffic than A or B. With only a few servers, a random placement can leave one server doing twice as much work as another."
+      ],
+      "callout": "Uneven ring shares mean uneven load, which can create the hot spots sharding was meant to avoid."
+    },
+    {
+      "title": "Use virtual nodes to balance shares",
+      "body": [
+        "Give each physical server several positions on the ring. These positions are <span class=\"term\">virtual nodes</span>, made by hashing names such as <code>A#1</code> and <code>A#2</code>. Each server now owns many small arcs instead of one large arc. This makes the shares more even. When a server leaves, its small arcs are spread across many servers rather than all landing on one neighbor."
+      ],
+      "callout": "Real systems may use 16 to a few hundred virtual nodes for each server. A stronger server can receive more positions."
+    },
+    {
+      "title": "Keep copies on nearby servers",
+      "body": [
+        "One copy would be lost if its server failed. Instead, store each key on the first three distinct servers clockwise from it: the owner and the next two. In the diagram, the key at 160° has copies on A, B, and C. If A fails, B and C still have the data, and the next server takes over A’s share."
+      ],
+      "callout": "Dynamo calls these servers a preference list. With virtual nodes, skip later positions that belong to a server already chosen."
+    },
+    {
+      "title": "Grow a cache cluster",
+      "body": [
+        "A group of Memcached servers sits in front of a database. With <code>hash(key) % N</code>, adding a fifth server remaps about 80% of keys. Those keys miss the cache at once, sending a rush of requests to the database. With consistent hashing, only about 20% of keys move, so most cache entries stay warm and the database sees less extra work."
+      ],
+      "callout": "Consistent hashing first became popular for spreading web caches across servers that can be added or removed."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Place servers and keys on a <b>hash ring</b>; each key belongs to the next server clockwise.</li><li>Adding or removing a server changes the owner of one arc of keys.</li><li><b>Virtual nodes</b> make server shares more even and spread a failed server’s keys across the rest.</li><li>Keep copies on the next few distinct servers for redundancy.</li></ul>"
+      ],
+      "callout": "Next: <b>Unique IDs at Scale</b> — how to name every row when there is no single database to count for you."
+    }
+  ]
+}

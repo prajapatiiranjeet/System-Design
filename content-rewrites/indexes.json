@@ -1,0 +1,89 @@
+{
+  "summary": "Learn how database indexes find rows quickly, and when an index cannot help.",
+  "goals": [
+    "Why a full table scan gets slower as a table grows",
+    "How a B-tree index finds a row",
+    "Why indexes add work to writes",
+    "How column order affects a composite index",
+    "When an index is not useful and how to check"
+  ],
+  "steps": [
+    {
+      "title": "Finding one user takes two seconds",
+      "body": [
+        "Logging in requires finding a user by email. With 50 million users, the lookup takes over two seconds and gets slower as the table grows. Without an index, the database does a <span class=\"term\">full table scan</span>: it reads every table page and checks each row until it finds a match. Watch the amber request crawl along."
+      ],
+      "callout": "A scan touches more data as the table grows. It may be fine for a thousand rows and slow for fifty million."
+    },
+    {
+      "title": "Use a sorted guide",
+      "body": [
+        "You do not read a phone book page by page. Because it is sorted, you open near the middle and check whether the name comes before or after. That lets you ignore half the book. Repeat until you find the name. Halving 50 million entries takes about 26 steps."
+      ],
+      "callout": "An index is a sorted guide to a column’s values, with a reference to each full row."
+    },
+    {
+      "title": "Build a B-tree index",
+      "body": [
+        "The command <code>CREATE INDEX ON users (email)</code> builds a <span class=\"term\">B-tree</span>: a tree of sorted values. The top part points to the branch that covers an email; that branch points to the page with the row. This example takes about three page lookups instead of checking 50 million rows. The query now takes about 2 ms."
+      ],
+      "callout": "Databases usually index primary keys automatically. Add indexes to columns you often search, join, or sort by."
+    },
+    {
+      "title": "Why B-trees have few levels",
+      "body": [
+        "Each tree node fits on a disk page and holds hundreds of keys. Each level can point to hundreds of pages below it, so three or four levels can cover billions of rows. The top levels are used often and tend to stay in memory."
+      ],
+      "callout": "That is why an indexed lookup can take about the same time with a million rows as with a billion."
+    },
+    {
+      "title": "Indexes also slow down writes",
+      "body": [
+        "When a user signs up, the database writes the row to the table and updates every index for that table so its values stay sorted. Indexes also use disk and memory. Add indexes for queries you need; avoid adding them to every column."
+      ],
+      "callout": "A table with six indexes must maintain the table and all six indexes for each insert. An unused index adds cost without helping a query."
+    },
+    {
+      "title": "The order of columns matters",
+      "body": [
+        "An index can include several columns, such as <code>(country, city)</code>. It sorts by country first, then by city within each country—like a phone book sorted by last name and then first name. It can help a query on <code>country</code>, or on both <code>country</code> and <code>city</code>. A query on <code>city</code> alone cannot use this index and may scan the table."
+      ],
+      "callout": "Put the column you filter by first. A multi-column index is most useful from its leftmost column onward."
+    },
+    {
+      "title": "Some queries do not match the index",
+      "body": [
+        "Marketing asks for all Gmail users with <code>WHERE email LIKE '%@gmail.com'</code>. The index is sorted by the beginning of each email, but this query searches by the ending, so the database must scan the table. A function can cause the same problem: <code>WHERE LOWER(email) = …</code> may not use a plain index on <code>email</code>, because the index stores the original values."
+      ],
+      "callout": "Possible fixes include an index on <code>LOWER(email)</code>, a separately stored and indexed email domain, or a search engine for free-text searches."
+    },
+    {
+      "title": "An index can match too many rows",
+      "body": [
+        "Support asks for every user in the US: <code>WHERE country = 'US'</code>. An index on <code>country</code> may be ignored because 40% of rows match. Using the index would require visiting a different table page for each of 20 million rows, which can be slower than reading the table from start to finish. An index is <span class=\"term\">selective</span> when it narrows the search to a small share of the rows."
+      ],
+      "callout": "If you often query a small group, such as <code>WHERE status = 'pending'</code>, a <b>partial index</b> can store only those rows. It is smaller and cheaper to maintain."
+    },
+    {
+      "title": "Ask the database to explain",
+      "body": [
+        "Prefix a query with <code>EXPLAIN</code> to see the database’s plan: which index it expects to use and how many rows it expects to read. An “Index Scan” over a few rows is usually good. A “Seq Scan” over a large table may be a warning. <code>EXPLAIN ANALYZE</code> runs the query and reports actual timings."
+      ],
+      "callout": "Most databases also keep a slow-query log. Start there to find queries that are actually taking time."
+    },
+    {
+      "title": "Answer from the index alone",
+      "body": [
+        "The login page needs only a user’s name and ID. If the index also stores those fields, the database can return them without reading the table pages. This is a <span class=\"term\">covering index</span>. The diagram shows lookups ending at the index instead of reaching the table."
+      ],
+      "callout": "In PostgreSQL, <code>CREATE INDEX ON users (email) INCLUDE (id, name)</code> adds those fields. It makes the index bigger, so use this for queries that matter."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Without an index, a lookup may <b>scan every row</b>.</li><li>A <b>B-tree</b> finds rows with a few page reads.</li><li>Every index adds work to <b>writes</b>; add indexes for queries you use.</li><li>Composite indexes work from the <b>leftmost column</b>.</li><li>Leading wildcards, functions, and low selectivity can prevent an index from helping. Check with <b>EXPLAIN</b>.</li></ul>"
+      ],
+      "callout": "Next: <b>Storage Engines</b> — what the database does with a write, and why some engines suit reads while others suit writes."
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "summary": "Authentication identifies a person. Authorization decides what that person may see or do.",
+  "goals": [
+    "How broken object-level authorization exposes another user’s data",
+    "How ownership checks and field allow-lists protect requests",
+    "How database row-level security adds a second check",
+    "How roles, relationships, and central policies work",
+    "How least privilege prevents a confused deputy",
+    "How audit logs record sensitive access"
+  ],
+  "steps": [
+    {
+      "callout": "Hiding a button in the app is not authorization. A person can call the API directly and send any ID."
+    },
+    {
+      "body": [
+        "For every request, check whether the requested invoice belongs to the caller’s organization. If not, return no invoice. Deny access by default: an endpoint with a missing check should fail closed."
+      ],
+      "callout": "A 404 response can avoid confirming that another person’s object exists. Random IDs may make guessing harder, but they do not replace an access check."
+    },
+    {
+      "callout": "Frameworks that copy request fields directly into database models make this easy to get wrong. List the fields each endpoint may change."
+    },
+    {
+      "callout": "This is defense in depth: assume one check may be missed someday, and add another layer."
+    },
+    {
+      "callout": "Keep roles few and clear. Too many special-case roles become difficult to understand and review."
+    },
+    {
+      "body": [
+        "Roles do not express every sharing rule, such as “Alice can see this folder because it was shared with her team.” <b>Relationship-based access</b> (ReBAC) stores facts about folders, teams, and people, then follows those relationships to decide access. This supports sharing like Google Docs."
+      ]
+    },
+    {
+      "body": [
+        "If services each have their own permission checks, the rules can drift. Each service can ask a <span class=\"term\">policy service</span>, “May Alice edit invoice 1042?” The application still enforces the answer. The rules live in one place, can be tested, and decisions can be logged."
+      ]
+    },
+    {
+      "callout": "A component’s permissions determine how much damage its bugs can cause."
+    },
+    {
+      "body": [
+        "Give each service and person only the access needed for their job. The reports service gets a read-only account that can see invoices and nothing else. Give each service its own identity and credentials. A bug in Reports can then expose only the data it already needs."
+      ]
+    },
+    {
+      "body": [
+        "Alice asks for a report of invoices over $10,000. The reports service queries with its own powerful identity and can read every company’s invoices. It has been tricked into using its authority for Alice. This is a <span class=\"term\">confused deputy</span>."
+      ]
+    },
+    {
+      "body": [
+        "Pass Alice’s identity to the reports service with her token, or exchange it for a narrower token. The query then uses Alice’s organization and permissions. Use the service’s own powerful credentials only for work no user requested, such as nightly maintenance."
+      ]
+    },
+    {
+      "body": [
+        "Record sensitive access in an append-only <span class=\"term\">audit log</span>: who accessed what, when, and from where. The people being audited should not be able to edit the log. It can help investigate an incident and can trigger alerts for unusual activity, such as opening 5,000 invoices in ten minutes."
+      ],
+      "callout": "Audit-log requirements depend on the laws, contracts, and standards that apply to the service."
+    },
+    {
+      "body": [
+        "<ul class=\"takeaways\"><li>Check whether the caller can access <b>this object</b> on every request.</li><li>Use <b>roles</b> for kinds of users and <b>relationships</b> for sharing.</li><li>Define policies centrally and enforce them in each service.</li><li>Allow-list writable fields and add database <b>row-level security</b>.</li><li>Grant <b>least privilege</b>, act with the user’s permissions, and keep an audit log.</li></ul>"
+      ]
+    }
+  ]
+}

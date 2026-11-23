@@ -1,0 +1,97 @@
+{
+  "summary": "See how a group of servers agrees on one leader and one history, even when some cannot communicate.",
+  "goals": [
+    "Why unsafe failover can create two leaders",
+    "How majority votes overlap",
+    "How Raft elections use terms and votes",
+    "When a write is committed",
+    "How cluster size affects failures",
+    "How fencing tokens stop an old leader"
+  ],
+  "steps": [
+    {
+      "title": "One leader and two followers",
+      "body": [
+        "From <em>Replication</em>: one <span class=\"term\">leader</span> handles writes and copies them to its followers. If the leader fails, a follower can take over. But how can the others tell that the leader failed? What if it is only slow or disconnected?"
+      ],
+      "callout": "A crashed server, a slow server, and a server behind a broken network link can all look the same to other machines: no response."
+    },
+    {
+      "title": "Two leaders create two histories",
+      "body": [
+        "A network problem cuts server A off from B and C. A is still running and serving App Server 1. B gets no message from A, assumes it failed, and takes over. Now both accept writes. App Server 1 sells seat 7 to Ana through A; another sells it to Ben through B. These two conflicting histories are a <span class=\"term\">split brain</span>."
+      ],
+      "callout": "A timeout shows that a server did not respond in time. It cannot prove the server has stopped."
+    },
+    {
+      "title": "Require a majority for decisions",
+      "body": [
+        "A safe rule is that electing a leader and confirming a write both need agreement from <b>more than half</b> of the nodes. With three nodes, two votes are needed. A, alone, cannot confirm a write. B and C together can elect a leader and continue. Any two majorities share at least one node, so two groups cannot both form separate majorities at the same time."
+      ],
+      "callout": "During a partition, the smaller side stops accepting writes. This keeps the data consistent, but reduces availability on that side."
+    },
+    {
+      "title": "Elect a leader with Raft",
+      "body": [
+        "<span class=\"term\">Raft</span> is an algorithm for choosing a leader and keeping a shared log. The leader sends regular <b>heartbeats</b>. Each follower starts a random timer; if it gets no heartbeat before the timer ends, it becomes a <b>candidate</b>. B’s timer ends first. It starts <b>term 2</b>, votes for itself, and asks the others to vote. Each node votes once per term, and only for a candidate whose log is at least as up to date as its own. C votes for B, giving B two of three votes. B becomes leader for term 2."
+      ],
+      "callout": "Random timers make simultaneous elections less likely. If votes split, no candidate wins; timers restart and another term begins. This usually takes about a second."
+    },
+    {
+      "title": "Confirm a write with a majority",
+      "body": [
+        "Writes use the same majority rule. App Server 2 sends <code>seat 7 → Ben</code> to B. B adds the change to its <span class=\"term\">log</span> and sends it to the followers. Once B and C have stored it, a majority has the entry and the write is <b>committed</b>. Only then does B apply it and reply “saved.” The committed entry survives a failure as long as a majority remains."
+      ],
+      "callout": "Each node applies the same log entries in the same order, so the nodes reach the same state. This is a <b>replicated state machine</b>."
+    },
+    {
+      "title": "The old leader steps down",
+      "body": [
+        "The network link returns. A, which still thinks it is leader for term 1, receives a heartbeat from B marked term 2. The higher term wins, so A becomes a follower. A has an entry for Ana’s booking that never reached a majority, so it was never confirmed. A removes that entry and copies B’s log. Now all three nodes have the same history."
+      ],
+      "callout": "Terms are logical counters used to order elections. Servers compare term numbers, not wall-clock times."
+    },
+    {
+      "title": "Choose the number of nodes",
+      "body": [
+        "A cluster of <b>N</b> nodes needs ⌊N/2⌋ + 1 votes for a majority. It can keep working when up to ⌊(N − 1)/2⌋ nodes are down. Three nodes can survive one failure; five can survive two. Four nodes still need three votes, so they can survive only one failure—just like three nodes. Put nodes in separate availability zones so one outage does not take out a majority."
+      ],
+      "callout": "Three or five nodes are common. Each write waits for more acknowledgements as the cluster grows, so a larger cluster can be slower without surviving more failures."
+    },
+    {
+      "title": "A leader pauses, then wakes up",
+      "body": [
+        "Leader B freezes for 20 seconds, perhaps during a long garbage-collection pause or while its virtual machine moves. A and C stop receiving heartbeats, elect C for term 3, and continue. B wakes up and still believes it is leader. Before it receives a message that corrects it, B writes to shared storage over C’s newer work."
+      ],
+      "callout": "A paused machine does not know it was paused. Checking “am I leader?” earlier does not prove it is still leader now."
+    },
+    {
+      "title": "Fence out the old leader",
+      "body": [
+        "Every leader request can carry its <b>term number</b> as a <span class=\"term\">fencing token</span>. The storage remembers the highest token it has seen. C has already written with token 3. When B’s write arrives with token 2, storage rejects it. The resource itself prevents the old leader from changing data."
+      ],
+      "callout": "Distributed locks need the same protection: give each new lock holder a larger number, and make the protected resource check it. A lock that only says “you own this” is not enough."
+    },
+    {
+      "title": "The cost of consensus",
+      "body": [
+        "Every write waits for a round trip to a majority. Inside one data center this may take one or two milliseconds; across regions it can add 50–150 ms to every write. All writes also pass through one leader, which limits throughput to what that machine can handle. If the cluster cannot reach a majority, it accepts no writes. That is deliberate."
+      ],
+      "callout": "Consensus trades latency and availability for correctness. Use it for critical decisions, not every like or page view."
+    },
+    {
+      "title": "Use consensus tools instead of building one",
+      "body": [
+        "Most teams do not implement Raft or Paxos themselves. They run a small consensus system such as <b>etcd</b>, <b>ZooKeeper</b>, or <b>Consul</b> to store critical facts: who the leader is, what the configuration says, or who holds a lock. Other systems depend on it. Kubernetes stores its cluster state in etcd. Kafka elects controllers with Raft. CockroachDB, Spanner, and MongoDB use consensus inside database groups to decide who leads."
+      ],
+      "callout": "Consensus is the machinery that makes “promote the most up-to-date follower” safe during replication failover."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>A timeout cannot tell a <b>failed</b> server from an <b>unreachable</b> one. Unsafe failover can create split brain.</li><li><b>Majority votes</b> are needed for elections and writes; two majorities overlap.</li><li><b>Terms</b> order leaders. A higher term makes an old leader step down.</li><li>A write is <b>committed</b> after a majority has stored it.</li><li>Use <b>three or five nodes</b> across zones, and use <b>fencing tokens</b> for writes outside the shared log.</li></ul>"
+      ],
+      "callout": "Next: <b>Transactions &amp; Isolation</b> — keeping one database correct when many requests change data at once."
+    }
+  ]
+}

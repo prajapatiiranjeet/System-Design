@@ -1,0 +1,96 @@
+{
+  "summary": "Design chat for millions of open connections, durable messages, offline delivery, and ordered conversation history.",
+  "goals": [
+    "Estimate open connections as well as message volume",
+    "Route messages between connection gateways",
+    "Store messages before delivering them",
+    "Support offline sync and remove duplicates",
+    "Handle group chats, presence, and gateway failures"
+  ],
+  "steps": [
+    {
+      "title": "Start with the chat requirements",
+      "body": [
+        "Design one-to-one and small-group chat, like WhatsApp or Messenger. Messages should arrive quickly when the other person is online, wait safely when they are offline, and appear on all of their devices. The main promise is that no message is lost, order is kept, and a message is shown once. When both people are online, delivery should take under 200 ms."
+      ],
+      "callout": "A feed can be late and approximate. Chat must keep messages complete and ordered. The same building blocks can support different requirements."
+    },
+    {
+      "title": "Estimate messages and connections",
+      "body": [
+        "Suppose <b>50 million</b> people use the app each day and send 40 messages each. That is 2 billion messages daily, about 23,000 per second and more at peak. At about 200 bytes each, that is 400 GB per day, or about 150 TB per year. Chat also keeps connections open: at peak, about <b>20 million</b> devices are connected."
+      ],
+      "callout": "One well-tuned server may hold a few hundred thousand mostly idle connections. Twenty million connections could need about 100 servers just to keep sockets open."
+    },
+    {
+      "title": "Begin with two WebSockets",
+      "body": [
+        "Polling would waste requests and add delay. Instead, each phone opens a <span class=\"term\">WebSocket</span>, a long-lived connection the server can use to send a message at any time. With one server, Alice and Bob both connect to it. When Alice sends a message, the server finds Bob’s socket in its memory and writes to it."
+      ],
+      "callout": "Unlike a stateless server, this server is <b>stateful</b>: Bob’s connection exists on one particular machine. That fact shapes the design."
+    },
+    {
+      "title": "Many gateways: where is Bob?",
+      "body": [
+        "Twenty million open connections need about 100 servers. Let <b>gateways</b> hold connections, and put the chat logic in a separate stateless chat service. Alice connects to gateway 1 and Bob to gateway 2. Alice’s message reaches the chat service, but it does not know which gateway holds Bob’s socket."
+      ],
+      "callout": "Keep gateways focused on connections. Put frequently changing chat logic behind them, so it can be deployed without dropping all open sockets."
+    },
+    {
+      "title": "Track each user’s gateway",
+      "body": [
+        "When a device connects, its gateway writes an entry in a fast store: <code>bob → gateway 2</code>. The entry has a short <span class=\"term\">TTL</span> and heartbeats renew it while the connection is alive. The chat service looks up Bob, sends the message to his gateway, and that gateway writes it to his socket. This is service discovery for individual users."
+      ],
+      "callout": "If Bob’s entry is missing or stale, treat him as offline. The message needs a safe place to wait until he reconnects."
+    },
+    {
+      "title": "Store before delivering",
+      "body": [
+        "So far, a message exists only in memory while it travels. If a server crashes during delivery, it could disappear. Use the rule <b>store first, then deliver</b>. The chat service writes the message to durable storage and assigns the conversation’s next <b>sequence number</b>. Only after the write succeeds does it tell Alice “sent.” The server—not the phones’ clocks—sets the order."
+      ],
+      "callout": "Partition storage by conversation and sort by sequence number. A write-heavy store such as Cassandra or HBase can fit this access pattern."
+    },
+    {
+      "title": "Let offline users sync later",
+      "body": [
+        "Bob loses signal in a tunnel, and his gateway entry expires. The message is already stored. A push notification through Apple’s or Google’s service can wake his phone. When Bob reconnects, his app says it has conversation 88 through message #41, and the server returns everything after that. This <b>cursor sync</b> works after a short gap, a week offline, or on a new device."
+      ],
+      "callout": "Live delivery is an optimization. The reliable process is “store, then sync”; an open socket only makes syncing happen sooner."
+    },
+    {
+      "title": "Show a retried message only once",
+      "body": [
+        "Alice taps send in a lift. The server stores the message, but the “sent” reply is lost. Alice’s app cannot tell whether it worked, so it retries. Give each message a unique ID on the device before sending and reuse it for every retry. The server recognizes IDs it has already stored and acknowledges them again. Receiving apps also discard duplicate IDs."
+      ],
+      "callout": "At-least-once delivery plus receivers that safely ignore duplicates can make the message appear once in the app. A ✓ means stored by the server; ✓✓ means received by the device."
+    },
+    {
+      "title": "Store group messages once, then fan out",
+      "body": [
+        "Store a group message once in the group conversation. Then find the members and each online member’s gateway, and send a copy to each device. This is fan-out on write and works for groups up to a few hundred people. A channel with 100,000 members creates too many deliveries at once; apps can fetch new messages when someone opens the channel instead."
+      ],
+      "callout": "Offline members do not need an immediate push. They sync from their own cursor when they return."
+    },
+    {
+      "title": "Treat presence as temporary",
+      "body": [
+        "Presence shows whether someone is “online” or “typing…”. When 20 million people connect and disconnect, updating every contact can create a storm of small messages. Treat presence as <b>ephemeral</b>: derive “online” from connection heartbeats, send updates only to people viewing that contact list, and do not store “typing…” at all. If a presence update is missed, the next heartbeat corrects it."
+      ],
+      "callout": "Messages are durable and ordered. Presence is best-effort and may be seconds old. A system can use different consistency levels for different features."
+    },
+    {
+      "title": "Recover from a gateway failure",
+      "body": [
+        "Gateway 2 crashes and 200,000 sockets disconnect. Messages remain safe because they were stored first. But 200,000 apps may try to reconnect at once and overload another gateway. Have apps reconnect with <b>exponential backoff and jitter</b>. The load balancer spreads them across healthy gateways, each app registers its new location, and messages sync from its cursor."
+      ],
+      "callout": "Plan for the reconnect rush when stateful servers fail. Before a deployment, drain gateways gently instead of disconnecting everyone at once."
+    },
+    {
+      "title": "Recap the finished design",
+      "body": [
+        "<table class=\"compare\"><thead><tr><th>Question</th><th>Choice</th><th>Reason</th></tr></thead><tbody><tr><td>Transport</td><td>WebSockets on gateways</td><td>Server push; 20 million connections</td></tr><tr><td>Routing</td><td>Registry maps user to gateway</td><td>Connections are stateful</td></tr><tr><td>Durability</td><td>Store before delivery</td><td>Do not lose messages</td></tr><tr><td>Order and duplicates</td><td>Server sequence and device IDs</td><td>Clocks drift; retries happen</td></tr><tr><td>Offline</td><td>Push and cursor sync</td><td>One recovery path for any gap</td></tr></tbody></table>End-to-end encryption changes what the server can read, not the message flow. The server stores and forwards encrypted text."
+      ],
+      "callout": "That completes the course. You now have the building blocks and three full system designs. Try sketching how you would build a product you use every day."
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "summary": "Give each client a fair request budget so one runaway script cannot crowd out everyone.",
+  "goals": [
+    "How one client can use shared capacity",
+    "How token buckets and other limits work",
+    "How gateways share a client’s limit",
+    "How 429 responses and tenant quotas help",
+    "How to drop low-priority work during overload"
+  ],
+  "steps": [
+    {
+      "title": "One client can use all the capacity",
+      "body": [
+        "A customer’s script has a bug and calls your API in a tight loop: 5,000 requests every second. The API servers spend nearly all their time on this script. Real users wait behind it and time out. Nobody attacked the service; one client is simply using more than its share."
+      ],
+      "callout": "Shared capacity needs a fairness rule. Without one, the loudest client can use it all."
+    },
+    {
+      "title": "Limit requests at the front door",
+      "body": [
+        "Put a <span class=\"term\">rate limiter</span> in the gateway before the API. Identify each client by API key, user ID, or IP address, and give it a budget such as 10 requests per second. Allow requests within the budget. Reject extra requests right away with <code>429 Too Many Requests</code>, before they use API resources."
+      ],
+      "callout": "An early rejection is cheap: the gateway answers in microseconds, and the API never handles the extra request."
+    },
+    {
+      "title": "Use a token bucket",
+      "body": [
+        "A common method is the <span class=\"term\">token bucket</span>. Each client has a bucket that holds up to 10 tokens. The bucket refills at 10 tokens per second. Each request uses one token; if none remain, the gateway returns 429. A real user’s bucket may stay mostly full, while a fast script empties its bucket and gets limited."
+      ],
+      "callout": "The bucket size allows a short burst. The refill rate limits the average over time."
+    },
+    {
+      "title": "Compare counting methods",
+      "body": [
+        "A <b>fixed window</b> counts requests in each calendar minute and resets at :00. A client can use its full budget at 12:00:59, then use it again at 12:01:00—twice the limit in two seconds. A <b>sliding window</b> smooths that boundary. A token bucket allows a controlled burst. Many API gateways use a sliding window or token bucket."
+      ],
+      "callout": "If you need a steady outflow to a fragile partner API, a <b>leaky bucket</b> can queue requests and release them at a fixed pace."
+    },
+    {
+      "title": "Share one limit across gateways",
+      "body": [
+        "A service may need several gateways. If each keeps a separate counter, a client spread across 10 gateways could get 10 times its limit. Keep the counter in a shared fast store such as Redis. Each gateway atomically increases the counter and checks the total."
+      ],
+      "callout": "A shared store adds about 1 ms per request. Some systems trade exact counts for speed by syncing local counters once a second."
+    },
+    {
+      "title": "Tell clients when to try again",
+      "body": [
+        "A useful 429 response tells the client when to return. Include a <code>Retry-After: 30</code> header and headers showing the limit and remaining requests. A well-behaved client waits before retrying. The script owner can fix the loop so it uses its fair share."
+      ],
+      "callout": "Publish limits in the API documentation. Offer higher limits to customers who need them."
+    },
+    {
+      "title": "Limit traffic per customer too",
+      "body": [
+        "One company uses your API through 10,000 users for a nightly import. Each person stays within their own limit, but together they use 70% of your capacity. Other customers slow down. A per-user limit cannot catch this. Add a limit for each <b>tenant</b> (customer account), based on its plan, as well as per-user limits."
+      ],
+      "callout": "Limits can be layered by user, customer, endpoint, and the whole system. Expensive endpoints can have lower limits."
+    },
+    {
+      "title": "Drop low-priority work first",
+      "body": [
+        "Rate limits stop one client from using too much capacity. On launch day, all users may arrive at once and total demand can still exceed what the system serves. <span class=\"term\">Load shedding</span> means deliberately dropping lower-priority requests first. The gateway can reject background work such as prefetching, recommendations, and analytics so logins and checkouts continue working."
+      ],
+      "callout": "Failing some requests on purpose can be better than letting every request fail by accident."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Give each client a <b>budget</b> and reject excess requests early with <b>429</b>.</li><li>A <b>token bucket</b> allows short bursts but limits the average rate.</li><li>Use a <b>shared store</b> to coordinate limits across gateways.</li><li>Set limits per user, customer, endpoint, and system.</li><li>During overload, <b>shed</b> low-priority work first.</li></ul>"
+      ],
+      "callout": "Next: <b>Timeouts &amp; Retries</b> — what to do when a service you call is struggling."
+    }
+  ]
+}

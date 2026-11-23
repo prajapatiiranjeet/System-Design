@@ -1,0 +1,89 @@
+{
+  "summary": "When replicas cannot communicate, decide whether to reject requests or answer with possibly stale data.",
+  "goals": [
+    "What it means when a network partition separates replicas",
+    "How consistency and availability trade off during a partition",
+    "How eventual consistency and conflicts work",
+    "How read and write quorums overlap",
+    "How to choose consistency for each operation"
+  ],
+  "steps": [
+    {
+      "title": "Keep a copy in each region",
+      "body": [
+        "A ticket site stores data in Europe and the US so users in either region can get a fast answer. Each region copies changes to the other. Both copies currently agree that one seat is left for a concert."
+      ],
+      "callout": "Copies in multiple regions can make responses faster and help the service survive a regional failure. They also need a way to stay in sync."
+    },
+    {
+      "title": "The regions lose contact",
+      "body": [
+        "An undersea cable is cut. Both regions and their users still work, but the regions cannot communicate with one another. This is a <span class=\"term\">network partition</span>. A US user now wants the last ticket, but the US copy cannot check the Europe copy. What should it do?"
+      ],
+      "callout": "Partitions can happen because of damaged cables, failed routers, configuration mistakes, or overloaded network links."
+    },
+    {
+      "title": "Option 1: reject uncertain requests",
+      "body": [
+        "The site can refuse requests that it cannot confirm. Europe has the primary copy and continues to serve users. The US side rejects writes—and reads that might show old data—until the link is restored. No user gets an answer based on conflicting data, but US users see errors during the partition."
+      ],
+      "callout": "Favor consistency when an incorrect answer could cost money, such as for payments, balances, inventory, or ticket sales."
+    },
+    {
+      "title": "Option 2: answer from each copy",
+      "body": [
+        "The site can let both regions keep accepting requests using their local copy. Ana in Paris buys the last ticket. Ben in Boston also buys the last ticket. Both users get an answer, but the copies now disagree and the site has sold one seat twice."
+      ],
+      "callout": "Favor availability when a brief disagreement is acceptable, such as for likes, view counts, carts, or social feeds."
+    },
+    {
+      "title": "Bring the copies back together",
+      "body": [
+        "The cable is repaired and the regions exchange the changes they missed. If left alone, the copies will eventually match; this is <span class=\"term\">eventual consistency</span>. But the system must still resolve conflicting writes. <b>Last write wins</b> is simple, but it could silently discard one ticket sale. The application could instead keep both sales, refund one, and explain what happened."
+      ],
+      "callout": "Many databases use last write wins by default. It can lose one update quietly, so use it only when that is acceptable."
+    },
+    {
+      "title": "Which write was last?",
+      "body": [
+        "Last write wins needs to compare write times, but each server has its own clock and clocks can drift. Here the US clock is three seconds fast. A customer saves a delivery address in the US, then corrects it two seconds later in Europe. The correction is newer, but its timestamp looks earlier, so last write wins may keep the old address."
+      ],
+      "callout": "Do not rely only on wall-clock time to order events across machines. Systems can use <b>logical clocks</b> that count event order, keep version information, or let the application merge both changes."
+    },
+    {
+      "title": "What the CAP theorem says",
+      "body": [
+        "The <span class=\"term\">CAP theorem</span> describes a choice during a network <b>partition</b> (P). A replicated system must give up either <b>consistency</b> (every read returns the latest write, as if there were one copy) or <b>availability</b> (every request to a working server gets a response). This is not simply “pick two of three”: partitions can happen, so the real choice is what the system does while copies cannot communicate. <small>CAP consistency is often called <b>linearizability</b>. It is different from the C in ACID, which means a transaction preserves the data’s rules.</small>"
+      ],
+      "callout": "PACELC adds a trade-off that also exists when there is no partition: coordinating copies can add latency. Consistency has a cost."
+    },
+    {
+      "title": "Tune the trade-off with quorums",
+      "body": [
+        "Some databases let each request choose how many copies must respond. Let <b>N</b> be the number of copies, <b>W</b> the number that must confirm a write, and <b>R</b> the number a read asks. With N = 3, W = 2, and R = 2, the read and write groups overlap because W + R > N. The read can find a copy that has the latest write and return it instead of a stale value."
+      ],
+      "callout": "W = 1 and R = 1 are faster but can return stale data. W = 3 requires all copies and can fail if one is unreachable. Cassandra, Riak, and ScyllaDB expose these choices; DynamoDB offers simpler consistency options."
+    },
+    {
+      "title": "Different writes need different promises",
+      "body": [
+        "A like can be confirmed by one copy and spread to others later (W = 1, R = 1). It stays fast and available, and a briefly wrong count is usually acceptable. A payment in this example waits for a majority on both write and read (W = 2, R = 2). That can be slower and may fail when two copies cannot be reached, but it avoids reading an old “unpaid” value."
+      ],
+      "callout": "Choose consistency per operation. Ask what it would cost if the answer were briefly wrong."
+    },
+    {
+      "title": "Consistency has several levels",
+      "body": [
+        "Consistency is not only “strong” or “eventual.” <b>Linearizable</b> reads always see the latest write. Other systems may promise <b>read-your-writes</b> (you see your own changes), <b>monotonic reads</b> (you do not see older data later), or <b>causal consistency</b> (a reply does not appear before the message it answers). Weaker promises can be cheaper and more available. Choose the weakest promise your users can accept."
+      ],
+      "callout": "Many eventually consistent systems offer read-your-writes within one session, which is enough for many apps."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>A <b>partition</b> separates copies that may still serve users.</li><li>During a partition, choose whether to reject uncertain requests for <b>consistency</b> or answer for <b>availability</b>.</li><li>When copies reconnect, they may need to resolve conflicts. Do not trust unsynchronized wall clocks to order writes.</li><li><b>Quorums</b> use W + R > N to make read and write groups overlap.</li><li>Choose the weakest consistency promise each operation can safely use.</li></ul>"
+      ],
+      "callout": "Next: <b>Consensus &amp; Leader Election</b> — how servers agree on one truth when some cannot be reached."
+    }
+  ]
+}

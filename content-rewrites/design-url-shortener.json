@@ -1,0 +1,96 @@
+{
+  "summary": "Design a link shortener from its requirements through redirects, storage, analytics, and abuse protection.",
+  "goals": [
+    "Turn the brief into requirements and estimates",
+    "Create short codes without collisions",
+    "Speed up redirects with a cache and choose redirect behavior",
+    "Store billions of key-to-URL records",
+    "Keep analytics and abuse checks off the redirect path"
+  ],
+  "steps": [
+    {
+      "title": "Start with the brief",
+      "body": [
+        "Design a service like bit.ly. A person pastes a long URL and gets a short one such as <code>sho.rt/x7Kp2Qa</code>. Opening that code sends the browser to the original URL. Before drawing boxes, decide what “works” means. It must create links and redirect. It should also expire links and count clicks. Redirects should be fast and rarely fail; creating a link can take a little longer."
+      ],
+      "callout": "For each design, ask what it must do, how much work it handles, and which qualities matter most when you must make a trade-off."
+    },
+    {
+      "title": "Estimate the size",
+      "body": [
+        "Suppose the service creates <b>100 million</b> links each month, about 40 writes per second. Each link is opened about 100 times, so redirects average 4,000 per second and peak near <b>12,000</b>. Over five years, that is 6 billion links. At about 500 bytes each, they use <b>3 TB</b>. The system is read-heavy: roughly 100 reads for each write. Its data is large but simple."
+      ],
+      "callout": "The read-to-write ratio suggests using a cache. Six billion simple key-to-value records suggest splitting storage across machines."
+    },
+    {
+      "title": "Begin with the simplest design",
+      "body": [
+        "Use two endpoints. <code>POST /links</code> saves a URL and returns a code. <code>GET /x7Kp2Qa</code> looks up the code and redirects. A table can hold <code>code</code> as the primary key, <code>long_url</code>, <code>created_at</code>, and <code>expires_at</code>. Stateless API servers behind a load balancer and one database are a good first version."
+      ],
+      "callout": "Start with what meets the brief, then ask what will become the first limit. We still need a way to create codes and handle 12,000 reads per second."
+    },
+    {
+      "title": "Why not use a shortened hash?",
+      "body": [
+        "One idea is to hash the long URL and use its first seven characters. This needs no counter, and the same URL always gets the same code. But seven characters cannot hold the whole hash, so different URLs will sometimes have the same code. With billions of links, collisions become common. Each insert must check whether the code is already taken and try again if it is. Two people shortening the same URL also get the same code, so they cannot have separate expiry times or click counts."
+      ],
+      "callout": "There are about 3.5 trillion seven-character codes. The birthday effect means a first collision is likely after only about two million generated codes."
+    },
+    {
+      "title": "Count IDs and encode them",
+      "body": [
+        "Give every link a unique number, then write it in <span class=\"term\">base 62</span>, which uses digits, lowercase letters, and uppercase letters. A unique number gives a unique code, so there is no collision check. Seven base-62 characters can represent about 62⁷, or 3.5 trillion, links. Use an ID block service: each API server reserves a block of one million IDs and counts through that block locally."
+      ],
+      "callout": "Base-62 encoding repeatedly divides by 62 and records the remainder. For example, 125 becomes “21”: 2 × 62 + 1. Decoding reverses the steps."
+    },
+    {
+      "title": "Make codes hard to guess",
+      "body": [
+        "Counter-based codes are sequential: <code>tn1e</code>, <code>tn1f</code>, <code>tn1g</code>. Someone could try every code and find private document links or reset links. Keep uniqueness but hide the order. Scramble each ID with a reversible keyed shuffle before encoding it, or choose seven random characters and let a unique database key reject a rare duplicate."
+      ],
+      "callout": "Hard-to-guess codes slow scraping, but they are not access control. Private content still needs authorization."
+    },
+    {
+      "title": "Cache popular redirects",
+      "body": [
+        "A small share of links gets most of the clicks, and a link rarely changes after creation. Add an in-memory cache from <code>code → long_url</code>. About 90% of redirects can finish in the cache within a millisecond; the database sees only misses. With immutable links there is little to invalidate, so a time limit (TTL) and least-recently-used eviction can be enough."
+      ],
+      "callout": "Cache “no such code” too. Bots request random codes; otherwise every invalid code triggers a database lookup."
+    },
+    {
+      "title": "Choose a redirect status",
+      "body": [
+        "A <code>301 Moved Permanently</code> tells the browser to remember the destination. Later clicks may not reach your service, so you lose click counts and control over the link. A <code>302 Found</code> is temporary, so the browser comes back to your service. That creates more requests but lets you collect analytics, change the destination, or expire the link. Most shorteners use 302 and let the cache handle the load."
+      ],
+      "callout": "A status code changes who can cache the result and how long it can be reused."
+    },
+    {
+      "title": "Spread billions of links across storage",
+      "body": [
+        "Six billion rows may be too much for one machine. Each query looks up one code; it does not need joins, range scans, or multi-row transactions. A <b>key–value store</b>, such as DynamoDB or Cassandra, fits that access pattern. Partition by a hash of the code to spread traffic, and keep three copies of each partition in separate zones."
+      ],
+      "callout": "Random-looking codes spread well when hashed. Partitioning by creation date would send most new traffic to “today.”"
+    },
+    {
+      "title": "Count clicks asynchronously",
+      "body": [
+        "Updating the link row on every redirect—<code>UPDATE links SET clicks = clicks + 1</code>—turns 4,000 reads per second into 4,000 writes, concentrated on popular links. Instead, put a small click event on a stream and return the redirect right away. A consumer adds events into per-link counts every few seconds."
+      ],
+      "callout": "The redirect is the product; the click count is supporting data. Keep that extra work off the critical path."
+    },
+    {
+      "title": "Protect the service from spam",
+      "body": [
+        "A short link hides its destination, which makes it useful for phishing. A script creates 5,000 links each minute to fake bank pages. If the domain lands on blocklists, every customer’s links may stop working. Limit link creation by account and IP, check each destination against phishing and malware lists at creation and later, and expire abandoned links."
+      ],
+      "callout": "Operations are part of the design. For many shorteners, abuse is a more likely first incident than heavy traffic."
+    },
+    {
+      "title": "Recap the finished design",
+      "body": [
+        "<table class=\"compare\"><thead><tr><th>Question</th><th>Choice</th><th>Reason</th></tr></thead><tbody><tr><td>Codes</td><td>Scrambled counter in base 62</td><td>Unique without collision checks</td></tr><tr><td>Reads</td><td>Cache and 302</td><td>About 100 reads per write</td></tr><tr><td>Storage</td><td>Hash-partitioned key–value store</td><td>One-key lookups; 3 TB</td></tr><tr><td>Clicks</td><td>Events on a stream</td><td>Not on the redirect path</td></tr><tr><td>Abuse</td><td>Limits, checks, expiry</td><td>Protect the domain</td></tr></tbody></table>The process matters more than the exact choices: requirements → estimates → simplest design → find the limit → fix it → repeat."
+      ],
+      "callout": "Next: <b>Design a News Feed</b> — where the hard question is when to do the work."
+    }
+  ]
+}

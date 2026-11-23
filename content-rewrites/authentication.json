@@ -1,0 +1,96 @@
+{
+  "summary": "Verify who a person is while protecting passwords, sessions, and sign-in tokens.",
+  "goals": [
+    "Store passwords as salted, deliberately slow hashes",
+    "How sessions and password resets work",
+    "How to reduce credential-stuffing attacks",
+    "Why passkeys resist phishing",
+    "How identity providers and short-lived tokens work"
+  ],
+  "steps": [
+    {
+      "title": "A database full of passwords",
+      "body": [
+        "Alice signs up, and the login service saves her password exactly as she typed it. Logging in is then a simple comparison. Later, a database backup leaks because a storage bucket was misconfigured or a laptop was stolen. The passwords are immediately readable. People often reuse passwords, so an attacker may try them on email, banking, and other sites."
+      ],
+      "callout": "Plan for the possibility that a database may leak. Ask what an attacker could do with the data."
+    },
+    {
+      "title": "Store a slow, salted hash",
+      "body": [
+        "Do not store the password itself. Store a <span class=\"term\">hash</span>, a one-way value calculated from it. At login, calculate a hash from the entered password and compare it with the saved value. Use a password-hashing method such as <b>Argon2id</b>, <b>scrypt</b>, or <b>bcrypt</b>. A random <b>salt</b> for each user makes identical passwords produce different stored values. These methods are deliberately costly to slow down guesses if the database leaks."
+      ],
+      "callout": "Fast general-purpose hashes such as MD5 or SHA-256 are not suited to password storage: specialized hardware can try many guesses quickly. Tune a password-hashing method for the service’s expected load."
+    },
+    {
+      "title": "Create a session after login",
+      "body": [
+        "People should not need to type a password on every page. After a successful login, the service creates a <b>session</b> and gives the browser a random session ID in a cookie. Later requests send that cookie. Set <code>HttpOnly</code> so page scripts cannot read it, <code>Secure</code> so it is sent only over HTTPS, and <code>SameSite</code> to control when it is sent with cross-site requests. Another option is a short-lived signed token; see <em>Stateless Services</em>."
+      ],
+      "callout": "Treat a session ID like a password: make it long and random, keep it out of URLs and logs, and invalidate it at logout."
+    },
+    {
+      "title": "Make password reset safe",
+      "body": [
+        "Password reset is another way into an account and can be weaker than login. Reset links should not use guessable or long-lived tokens. A safe flow uses a long random token once, expires it after 15 minutes, and gives the same reply whether or not the email belongs to an account. After a password change, sign out the user’s existing sessions."
+      ],
+      "callout": "Anything that can change a password—reset, email change, or support tools—needs protection like the login flow."
+    },
+    {
+      "title": "Stop credential stuffing",
+      "body": [
+        "A bot has a list of a billion email and password pairs leaked from other websites. It tries them against your login form, thousands per second. Password hashing can protect a leaked database, but it cannot stop people from reusing passwords. In this example, about 0.5% of attempts succeed—enough to take over thousands of accounts. This is <span class=\"term\">credential stuffing</span>."
+      ],
+      "callout": "Credential stuffing uses passwords leaked elsewhere. It does not require a bug in your own code."
+    },
+    {
+      "title": "Make automated guessing harder",
+      "body": [
+        "Limit failed attempts per account and IP address. Add a challenge when traffic looks automated. At signup, reject passwords found in known breach lists. Flag risky sign-ins, such as a new device or country, and ask for another way to prove the user’s identity."
+      ],
+      "callout": "Services such as Have I Been Pwned can check whether a password appears in known breaches without sending the full password."
+    },
+    {
+      "title": "Require another factor",
+      "body": [
+        "<span class=\"term\">Multi-factor authentication</span> asks for proof from more than one category: something the person knows, such as a password, and something they have, such as an authenticator app, phone approval, or hardware key. A stolen password alone is not enough. <b>Passkeys</b> use a device-held key pair and can resist phishing."
+      ],
+      "callout": "SMS codes are better than no second factor, but can be intercepted through SIM swapping. Prefer an authenticator app, device approval, or passkey when possible."
+    },
+    {
+      "title": "A fake login page can relay codes",
+      "body": [
+        "An email warns about an “unusual sign-in” and links to <code>shop-example.co</code>, a copy of your login page. Alice enters her password and the one-time code from her app. The fake site forwards both to the real site immediately and steals her session. A code or approval can stop someone using a stolen password later, but may not stop a live phishing site relaying it."
+      ],
+      "callout": "A fake page can ask for anything a person can read and type. Training helps, but cannot prevent every phishing attack."
+    },
+    {
+      "title": "Use a passkey instead of typing",
+      "body": [
+        "A <span class=\"term\">passkey</span>, built on WebAuthn, uses a public and private key pair on Alice’s phone or laptop. The site sends a challenge, and the device signs it. The signature is tied to the real site domain, <code>shop.example</code>. On the fake site, the device will not offer that passkey. There is no password or one-time code to relay. The server stores only the public key, which cannot be used to sign in as Alice."
+      ],
+      "callout": "Passkeys may sync across a person’s devices through Apple, Google, or a password manager, so losing one phone does not always mean losing access."
+    },
+    {
+      "title": "Let an identity provider sign users in",
+      "body": [
+        "“Sign in with Google” uses <span class=\"term\">OpenID Connect</span>, an identity layer built on OAuth 2.0. Your app sends Alice to an <b>identity provider</b>. She signs in there, and it returns a signed <b>ID token</b> that says who she is. Your service validates the token, including its signature, issuer, intended audience, and expiry. It does not need to see or store her password. Companies use this approach for single sign-on with services such as Okta or Entra ID."
+      ],
+      "callout": "Authentication is difficult to implement safely. Using a specialist identity provider can be a good choice."
+    },
+    {
+      "title": "Limit the damage from a stolen token",
+      "body": [
+        "A bug logs request headers, and an attacker finds Alice’s token. While valid, a token can let the attacker act as Alice. If it never expires, the access could last indefinitely. Use short-lived <b>access tokens</b>, such as 15 minutes, plus a <b>refresh token</b> stored carefully and able to be <b>revoked</b>. Logging out—or choosing “log out everywhere”—can revoke it."
+      ],
+      "callout": "Short expiry limits how long a leaked token is useful. Revocation lets the service end access sooner."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Store passwords as <b>slow, salted hashes</b>, not readable text.</li><li>Protect session cookies with <b>HttpOnly</b>, <b>Secure</b>, and an appropriate <b>SameSite</b> setting.</li><li>Reduce credential stuffing with rate limits, breach checks, and another factor.</li><li>Make password reset as safe as login; <b>passkeys</b> can resist phishing.</li><li>Consider an identity provider and keep tokens short-lived and revocable.</li></ul>"
+      ],
+      "callout": "Next: <b>Authorization</b> — knowing who someone is does not say what they are allowed to do."
+    }
+  ]
+}

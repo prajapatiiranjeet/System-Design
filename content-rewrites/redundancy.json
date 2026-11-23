@@ -1,0 +1,96 @@
+{
+  "summary": "Plan for failures so one broken component does not take the whole service offline.",
+  "goals": [
+    "How availability is measured in nines",
+    "How to find and remove single points of failure",
+    "Why copies should span failure domains",
+    "How RTO, RPO, and failover testing shape a design",
+    "How canary deploys and regions reduce risk"
+  ],
+  "steps": [
+    {
+      "title": "How available is a chain of components?",
+      "body": [
+        "A simple service needs a load balancer, an app server, and a database. Each is available 99.9% of the time. A request needs all three, so their availabilities multiply: 0.999 × 0.999 × 0.999 ≈ 99.7%. That is about 26 hours of downtime per year."
+      ],
+      "callout": "Availability is often described in “nines.” Each extra 9 reduces the allowed downtime by about ten times."
+    },
+    {
+      "title": "Each component can be a single point of failure",
+      "body": [
+        "A <span class=\"term\">single point of failure</span> (SPOF) is one component whose failure can stop the service. Here, that includes each component in the chain. A failed disk, crashed operating system, or broken deployment can leave a million users with an error page."
+      ],
+      "callout": "Hardware fails, software crashes, and people make mistakes. Plan for each kind of failure and decide what should keep working."
+    },
+    {
+      "title": "Add a backup for each part",
+      "body": [
+        "Add another copy of each component: an active and standby load balancer, two app servers sharing traffic, and a database follower ready to take over. If both copies must fail for the service to stop, two independent 0.1% failure chances multiply to 0.0001%. In an ideal calculation, two 99.9% copies give 99.9999% availability."
+      ],
+      "callout": "Real pairs do worse because failover takes time and copies may share a building, network, or deployment. This example uses a more cautious 99.95%."
+    },
+    {
+      "title": "Copies can fail together",
+      "body": [
+        "All the copies are still in one data center. A power outage, flood, network cut, or cooling failure can take out the building and every copy inside it. These are <span class=\"term\">correlated failures</span>: one event affects several components. Redundancy helps most when copies fail independently."
+      ],
+      "callout": "Shared power, networks, racks, software versions, or one bad configuration change can affect every copy."
+    },
+    {
+      "title": "Spread copies across availability zones",
+      "body": [
+        "Cloud regions contain <span class=\"term\">availability zones</span>: separate data centers, often kilometres apart, with their own power and network and fast links between them. Put an app server and a database copy in each zone. A problem that affects one zone then takes out only part of the system."
+      ],
+      "callout": "Spread copies across racks, zones, and, for the most critical systems, regions."
+    },
+    {
+      "title": "Fail over when a zone goes dark",
+      "body": [
+        "Zone A loses power. Health checks fail, so the load balancer stops sending it traffic. The database follower in zone B becomes the leader. Users whose requests were in progress may see an error and retry. Within a minute, the service runs from zone B."
+      ],
+      "callout": "Zone B needs enough spare capacity to handle all traffic by itself. A backup that cannot carry the load is not useful redundancy."
+    },
+    {
+      "title": "Set recovery time and recovery point",
+      "body": [
+        "Two targets describe a failover. <span class=\"term\">RTO</span> (recovery time objective) is how long the service can take to return. <span class=\"term\">RPO</span> (recovery point objective) is how much recent data the service can afford to lose. With asynchronous replication, a follower can be seconds behind, so recent writes may be missing. Synchronous replication can make RPO zero, but slows writes."
+      ],
+      "callout": "Agree on RTO and RPO with the business. Those targets shape the design and its cost."
+    },
+    {
+      "title": "Test failover before a real outage",
+      "body": [
+        "A failover plan that is never tested can quietly break: configuration can drift, a backup may be too small, or a script may contain a typo. Teams can deliberately test failures in production during planned hours. This practice is called <span class=\"term\">chaos engineering</span>. Here, a test stops one app server while the team watches the service respond."
+      ],
+      "callout": "Netflix’s Chaos Monkey randomly stops servers. Start smaller with a planned game day and one failure at a time."
+    },
+    {
+      "title": "A bad release can break every copy",
+      "body": [
+        "A release with a bug goes to every app server in both zones at once. They all fail on the same request. Redundant machines do not help when every copy runs the same broken code. Many outages come from changes—code, configuration, or infrastructure—not hardware failure."
+      ],
+      "callout": "Identical copies can fail in the same way. A bad change can create a correlated failure."
+    },
+    {
+      "title": "Release to a canary first",
+      "body": [
+        "Roll out the change in stages. First send version 2.4 to one server or 1% of traffic. This small test group is a <span class=\"term\">canary</span>. Compare its error rate and latency with the other servers. If it looks worse, roll back while only a small share of users was affected. If it looks good, continue to 10%, 50%, and then 100%. Teams can also deploy one zone at a time."
+      ],
+      "callout": "Feature flags help too: deploy code while a feature is off, then turn it on gradually and turn it off quickly if problems appear."
+    },
+    {
+      "title": "Use more than one region",
+      "body": [
+        "Availability zones protect against one data center failing, but a whole <b>region</b> can still go down. A second region can also serve users on another continent. A global DNS or anycast front door can direct users to a nearby healthy region. The data is harder: copies across an ocean may lag by about 100 ms."
+      ],
+      "callout": "Multi-region systems cost more and are harder to run. Many services are well served by multiple zones in one region and reliable backups."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Availability in a chain is the product of each required component’s availability.</li><li>Remove <b>single points of failure</b> with backup copies.</li><li>Copies should fail independently, so spread them across zones.</li><li>Set <b>RTO</b> and <b>RPO</b>, then test failover.</li><li>Many outages come from changes; release with <b>canaries</b>.</li></ul>"
+      ],
+      "callout": "Next: <b>Rate Limiting</b> — protect the service from too much traffic."
+    }
+  ]
+}

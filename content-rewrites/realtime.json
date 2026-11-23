@@ -1,0 +1,82 @@
+{
+  "summary": "Compare ways to send chat, scores, and notifications to users as events happen.",
+  "goals": [
+    "Why ordinary HTTP does not let a server push first",
+    "How polling and long polling compare",
+    "How SSE and WebSockets send updates",
+    "How many persistent connections scale",
+    "How offline users catch up and show presence"
+  ],
+  "steps": [
+    {
+      "title": "Bob sends a message. How does Alice hear?",
+      "body": [
+        "Bob’s message reaches the chat server, and Alice’s phone should show it quickly. With ordinary HTTP, each exchange starts with a <b>client request</b> and a server response. The server cannot start a new request to Alice’s phone just to say “you have a message.”"
+      ],
+      "callout": "Phones and browsers are usually behind home routers or mobile networks that block incoming connections, so the client must connect out first."
+    },
+    {
+      "title": "Polling: ask again and again",
+      "body": [
+        "The simplest option is for Alice’s app to ask “anything new?” every two seconds. Most answers say no; occasionally one includes a new message. This uses ordinary HTTP requests, but a message may be up to two seconds late and many requests return nothing."
+      ],
+      "callout": "Polling can work for information that changes slowly, such as a build status or order tracking page. Choose a sensible interval."
+    },
+    {
+      "title": "A million phones create many requests",
+      "body": [
+        "One million users polling every two seconds generate 500,000 requests per second. About 95% may return “nothing new.” Many servers are busy answering requests that carry no update. Polling more often reduces delay but increases the number of requests."
+      ],
+      "callout": "Polling trades freshness for server load: cut the interval in half and the request rate doubles."
+    },
+    {
+      "title": "Long polling: wait for news",
+      "body": [
+        "With <span class=\"term\">long polling</span>, the app sends a request and the server holds it open until a message arrives or about 30 seconds pass. Then the server responds and the app immediately asks again. Messages can arrive quickly, and there are fewer empty responses."
+      ],
+      "callout": "Long polling uses ordinary HTTP, so it can be a fallback when a better option is unavailable."
+    },
+    {
+      "title": "SSE: keep one stream open",
+      "body": [
+        "With <span class=\"term\">Server-Sent Events</span> (SSE), the app opens one request and the server keeps the response open. It sends each new event down that stream. SSE is one-way, from server to client, and browsers reconnect automatically. Alice sends her own messages using normal requests."
+      ],
+      "callout": "SSE works well for feeds, notifications, live scores, dashboards, and streaming AI responses."
+    },
+    {
+      "title": "WebSockets: send in either direction",
+      "body": [
+        "A <span class=\"term\">WebSocket</span> begins as an HTTP request and then upgrades to a persistent two-way connection. Either side can send a message at any time, with little overhead per message. Bob and Alice each keep a socket open, and messages pass through the server in a few milliseconds."
+      ],
+      "callout": "Use WebSockets when the client also sends frequent updates, such as in chat, multiplayer games, collaborative editing, or trading screens."
+    },
+    {
+      "title": "Find which server holds Alice’s connection",
+      "body": [
+        "Each open connection uses memory, so a million users need many chat servers. Bob’s socket is on server 2, but Alice’s is on server 1. Server 2 cannot send to Alice directly. The servers use <span class=\"term\">pub/sub</span>: server 2 publishes to Alice’s channel, and the server holding her socket receives the event and forwards it."
+      ],
+      "callout": "Pub/sub lets real-time servers relay messages to the server that owns a user’s connection."
+    },
+    {
+      "title": "Store messages for offline users",
+      "body": [
+        "Alice enters the subway and her socket disconnects. Bob’s message has nowhere to go. Save each message first, then push it if the recipient is connected. When Alice reconnects, her app says “I last saw message 1041” and fetches everything after it. If she stays offline, a mobile push notification service such as APNs or FCM can wake her phone."
+      ],
+      "callout": "Real-time delivery is a shortcut. The stored message is the source of truth and lets a user catch up after reconnecting."
+    },
+    {
+      "title": "Track who seems to be online",
+      "body": [
+        "A green dot next to a name needs <span class=\"term\">presence</span> information. Each app sends a small <b>heartbeat</b> every 30 seconds; the server updates the user’s “last seen” time. If no heartbeat arrives for a minute, mark them offline. With a million users, that is about 33,000 heartbeats each second. Keep presence in a fast store with expiring keys, and send changes only to people viewing that contact."
+      ],
+      "callout": "Presence is approximate on purpose. A few seconds of delay is usually acceptable and saves a lot of traffic."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<table class=\"compare\"><thead><tr><th></th><th>Delay</th><th>Direction</th></tr></thead><tbody><tr><td><b>Polling</b></td><td>Up to the interval</td><td>Client asks</td></tr><tr><td><b>Long polling</b></td><td>Low</td><td>Client asks; server waits</td></tr><tr><td><b>SSE</b></td><td>Low</td><td>Server → client</td></tr><tr><td><b>WebSocket</b></td><td>Lowest</td><td>Both ways</td></tr></tbody></table>Persistent connections need many servers at scale, joined by <b>pub/sub</b>. Store each message first so offline users can catch up."
+      ],
+      "callout": "That completes Communication. Next: <b>Reliability</b> — starting with redundancy and failover."
+    }
+  ]
+}

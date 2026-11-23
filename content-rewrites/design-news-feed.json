@@ -1,0 +1,96 @@
+{
+  "summary": "Design a fast home feed and choose when to gather posts for each reader.",
+  "goals": [
+    "Estimate feed reads and post writes",
+    "Compare building a feed on read with building it on write",
+    "Understand why celebrities need a hybrid approach",
+    "Choose what to store in each feed",
+    "Use cursors and rebuild derived feed data"
+  ],
+  "steps": [
+    {
+      "title": "Start with the home-feed requirements",
+      "body": [
+        "Design a social app home screen that shows recent posts from accounts a person follows, newest first. Opening the feed should feel instant—under 200 ms. New posts should reach followers within a few seconds, but not necessarily everyone at once. A delay of five seconds is acceptable, so the feed can be <b>eventually consistent</b>."
+      ],
+      "callout": "It helps to say what does not need to be immediate or exact. That flexibility can make a large system practical."
+    },
+    {
+      "title": "Estimate the workload",
+      "body": [
+        "Suppose <b>200 million</b> people use the app each day and open their feed about ten times. That is 2 billion feed loads daily, or about 23,000 per second on average. They write 50 million posts daily, about 600 per second. Feed reads are about <b>40 times</b> more common than posts. A typical person follows 200 accounts."
+      ],
+      "callout": "Two numbers shape the design: there are 40 feed reads per post, and each feed may draw posts from 200 accounts."
+    },
+    {
+      "title": "First design: build the feed when asked",
+      "body": [
+        "Store posts in a table indexed by <code>(author_id, created_at)</code> and split the data by author. To build Alice’s feed, find the 200 accounts she follows, fetch their newest posts, merge them by time, and return the newest 20. This is <span class=\"term\">fan-out on read</span>, or the pull model. Posting requires only one insert, and the new post is available to followers immediately when they request the feed."
+      ],
+      "callout": "Nothing is precomputed, so there is no stale feed to repair. This is a good design for a small app."
+    },
+    {
+      "title": "Too much work happens during a read",
+      "body": [
+        "Each feed load asks up to 200 authors across many shards and waits for the slowest response. At 23,000 feed loads per second, 200 lookups each means <b>4.6 million</b> lookups per second. Most recompute a feed that the same person saw a minute ago. The system puts expensive work on the read path, which runs 40 times more often than posts are written."
+      ],
+      "callout": "When reads far outnumber writes, consider doing more of the work when a post is written."
+    },
+    {
+      "title": "Build each feed when a post is written",
+      "body": [
+        "Keep a ready-made, newest-first list for every user. When Ana posts, a <b>fan-out worker</b> finds her followers and adds the post to their lists. This is <span class=\"term\">fan-out on write</span>, or the push model. Reading a feed becomes one list lookup. A queue runs the fan-out in the background, so Ana gets an immediate response and followers see the post a second or two later."
+      ],
+      "callout": "At 600 posts per second and about 200 followers per post, this creates about 120,000 small cache writes each second—much less work than 4.6 million lookups."
+    },
+    {
+      "title": "Store post IDs, not full posts",
+      "body": [
+        "Each feed list stores only <b>post IDs</b>, a few bytes each, and keeps only the newest 800 or so. When a feed is read, the API fetches the post records in one batch. This is sometimes called <b>hydration</b>. Keeping one copy of each post means edits and deletes happen once. If a post was deleted, the API skips it while building the response."
+      ],
+      "callout": "Two hundred million lists × 800 IDs × 8 bytes is about 1.3 TB of memory. A large cache cluster can hold that; storing full posts in each feed could cost about 100 times more."
+    },
+    {
+      "title": "One celebrity has 50 million followers",
+      "body": [
+        "A pop star with <b>50 million</b> followers posts. That one post creates 50 million cache writes. At 100,000 writes per second, delivery takes more than eight minutes. The job queue backs up, so everyone else’s posts wait too. This is a hot-key problem: one account creates far more work than the average."
+      ],
+      "callout": "The typical account has 200 followers, but a few thousand accounts have millions—and they may post during the busiest periods."
+    },
+    {
+      "title": "Use push for most users, pull for celebrities",
+      "body": [
+        "Use different methods for different account sizes. Push posts from ordinary users to their followers’ feeds. Do not fan out posts from accounts above a threshold, such as 100,000 followers. When Alice opens her feed, read her ready-made list and also fetch the newest posts from the few celebrities she follows. Merge those results. A few extra reads are cheaper than 50 million writes per post."
+      ],
+      "callout": "Real systems often combine push and pull because a small share of accounts have very different traffic."
+    },
+    {
+      "title": "Skip feeds for people who are inactive",
+      "body": [
+        "Perhaps only a third of Ana’s followers opened the app this month. Filling the other lists uses memory for feeds nobody reads. Fan out only to followers active in the last 30 days and let other lists expire. When an inactive user returns, build their feed once using the pull method, cache it, then resume pushing new posts."
+      ],
+      "callout": "The pull path remains useful for creating, repairing, and rebuilding feeds. Push is an optimization on top of it."
+    },
+    {
+      "title": "Scroll with a cursor",
+      "body": [
+        "Alice asks for more posts. “Page 2” could mean skip 20 items and return the next 20. But three new posts arrived at the top, so this may show Alice three posts twice. A <span class=\"term\">cursor</span> is tied to a specific post: “return 20 posts older than post 9017.” New posts cannot shift that position."
+      ],
+      "callout": "Time-ordered IDs make the cursor simple: “older than” can mean “ID less than.”"
+    },
+    {
+      "title": "Rebuild a wiped feed cache safely",
+      "body": [
+        "A bad deployment clears the feed cache. No original posts are lost because posts and follows are the <b>source of truth</b>. Feed lists are <b>derived data</b> and can be rebuilt. The risk is a rush of millions of pull-based rebuilds at once. Rebuild only when a user opens the app, limit how many rebuilds run at once, and serve a smaller feed until the cache is warm."
+      ],
+      "callout": "Know which data is the source of truth and which is a convenience. Derived data is safe to rebuild only if the original data is protected."
+    },
+    {
+      "title": "Recap the finished design",
+      "body": [
+        "<table class=\"compare\"><thead><tr><th>Question</th><th>Choice</th><th>Reason</th></tr></thead><tbody><tr><td>Build feeds</td><td>Push on write</td><td>40 reads per post</td></tr><tr><td>Celebrities</td><td>Pull and merge at read time</td><td>50 million writes per post</td></tr><tr><td>Feed entries</td><td>Post IDs, limited to recent items</td><td>Keep one copy of each post</td></tr><tr><td>Inactive users</td><td>Skip fan-out; rebuild on return</td><td>Unused feeds take memory</td></tr><tr><td>Scrolling</td><td>Cursors</td><td>New posts shift numbered pages</td></tr></tbody></table>A ranked feed adds a scoring step before returning posts. The same underlying data flow still applies."
+      ],
+      "callout": "Next: <b>Design a Chat System</b> — where messages need to arrive reliably and in order."
+    }
+  ]
+}

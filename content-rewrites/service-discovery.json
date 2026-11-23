@@ -1,0 +1,104 @@
+{
+  "summary": "Help services find current instances and give outside clients one stable entry point.",
+  "goals": [
+    "Why fixed server addresses become outdated",
+    "How registries, heartbeats, and DNS keep addresses current",
+    "How client-side and server-side discovery differ",
+    "How readiness checks, slow start, and draining work",
+    "How a registry keeps working through node failures",
+    "How service meshes and API gateways help"
+  ],
+  "steps": [
+    {
+      "title": "Orders needs to find Payments",
+      "body": [
+        "Orders needs to call Payments. One simple method is to put the payment servers’ IP addresses in Orders’ configuration and spread requests across them. This works only while those machines and addresses stay the same."
+      ],
+      "callout": "In a monolith, calling Payments is just a function call in the same program. Separate services need to find one another over a network."
+    },
+    {
+      "title": "Instances change over time",
+      "body": [
+        "Cloud servers are often replaced. An autoscaler adds or removes them, a deployment replaces them, and a failed server is swapped out. Payments moved from IP address 10.0.3.7 to 10.0.5.21, but Orders still has the old list. Half its calls fail, while the new instance gets no traffic."
+      ],
+      "callout": "An address written into configuration can become outdated. In an autoscaled system this can happen many times a day."
+    },
+    {
+      "title": "Ask a service registry",
+      "body": [
+        "Each running instance <b>registers</b> with a <span class=\"term\">service registry</span> and sends regular <b>heartbeats</b> to show it is alive. Orders asks the registry for the current Payments addresses. Consul, etcd, ZooKeeper, and Eureka are examples. Kubernetes also provides service discovery for its services."
+      ],
+      "callout": "Orders can cache the address list for a few seconds instead of asking on every request, so the registry does not become a bottleneck."
+    },
+    {
+      "title": "Instances register and leave automatically",
+      "body": [
+        "A new instance at 10.0.6.4 starts, registers itself, and can receive traffic within seconds. Another instance hangs and misses three heartbeats, so the registry removes it. No one has to edit a configuration file."
+      ],
+      "callout": "A heartbeat gives the registry information it can use to decide whether an instance is responding. Load balancers use a similar health check."
+    },
+    {
+      "title": "Let the client or a server choose",
+      "body": [
+        "With <b>client-side discovery</b>, Orders gets the address list and chooses an instance, perhaps using round robin or load. There is no extra network hop, but every client needs this logic. With <b>server-side discovery</b>, Orders calls one stable name. An internal load balancer or Kubernetes Service finds an instance and forwards the request. Clients stay simpler."
+      ],
+      "callout": "Kubernetes gives each service a stable name and virtual IP, so many teams do not work with the registry directly."
+    },
+    {
+      "title": "Use DNS for discovery",
+      "body": [
+        "A registry can answer through <span class=\"term\">DNS</span>. Looking up <code>payments.internal</code> returns IP addresses for healthy instances. Most languages and tools already support DNS. The risk is caching: a client may keep an old answer for its full <span class=\"term\">TTL</span> (time to live) or even longer, and keep calling an instance that is gone. Use short TTLs and retry connection errors."
+      ],
+      "callout": "Some runtimes keep DNS answers for a very long time. Check their behavior before relying on DNS for service discovery."
+    },
+    {
+      "title": "Do not send traffic before an instance is ready",
+      "body": [
+        "A new instance registers as soon as its process starts, before it has connected to the database or warmed its cache. The registry sends it a full share of traffic, and a third of payment calls time out for 30 seconds. Being <em>alive</em> does not mean it is <em>ready</em> to serve requests."
+      ],
+      "callout": "Cold starts often happen during deployments and autoscaling, when traffic is already moving between instances."
+    },
+    {
+      "title": "Check readiness, ramp up, and drain",
+      "body": [
+        "Use separate checks for <b>liveness</b> (“is the process running?”) and <b>readiness</b> (“can it serve requests now?”). Add an instance only after it passes its readiness check. Increase its traffic share gradually; this is <span class=\"term\">slow start</span>. Before stopping an instance, remove it from discovery, let requests already in progress finish (<b>draining</b>), then shut it down."
+      ],
+      "callout": "Kubernetes includes readinessProbe, livenessProbe, and a preStop hook with a grace period for draining."
+    },
+    {
+      "title": "Keep the registry available too",
+      "body": [
+        "Callers cache the last known address list. If the registry is unreachable, they can continue using that list for a while, though they will not see changes. The registry itself runs as a small <b>cluster</b> of three or five nodes that agree by majority vote using an algorithm such as Raft or Paxos. A three-node cluster can lose one node; a five-node cluster can lose two."
+      ],
+      "callout": "etcd, Consul, and ZooKeeper use consensus clusters. Odd sizes are useful: three nodes survive one failure, and five survive two."
+    },
+    {
+      "title": "Do not rebuild network features in every service",
+      "body": [
+        "Discovery is only one part of service communication. Each call may also need timeouts, retries, circuit breakers, encryption, and metrics. If teams use different programming languages, each may build its own version, with its own bugs and defaults."
+      ],
+      "callout": "Several different retry implementations can behave differently during the same outage."
+    },
+    {
+      "title": "Use a service mesh for shared plumbing",
+      "body": [
+        "A <span class=\"term\">service mesh</span>, such as Istio or Linkerd, runs a small proxy called a <b>sidecar</b> beside each service. A service talks to its local proxy. The proxies find instances, retry, time out, encrypt traffic with mTLS, and report metrics. A <b>control plane</b> sends current addresses and rules to the proxies."
+      ],
+      "callout": "A mesh adds two local network hops and operational complexity. It can help many services, but may be too much for a small system."
+    },
+    {
+      "title": "Give outside clients one front door",
+      "body": [
+        "Service discovery handles calls between services. Outside clients, such as apps and browsers, can use an <span class=\"term\">API gateway</span> as one front door. It authenticates requests, applies rate limits, handles TLS, and routes each path to the right service. Clients do not need to know the internal service layout."
+      ],
+      "callout": "Different clients may use a <b>backend for frontend (BFF)</b>: a gateway shaped for the needs of mobile or web clients."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>Fixed addresses become outdated as service instances change.</li><li>A <b>registry</b> uses heartbeats to keep an address list current; DNS can provide another route.</li><li>Send traffic only to <b>ready</b> instances; drain requests before stopping one.</li><li>Discovery can happen in a client, proxy, or <b>service mesh</b>.</li><li>An <b>API gateway</b> gives outside clients one stable front door.</li></ul>"
+      ],
+      "callout": "Next: <b>Sagas</b> — keep data consistent when one action uses several services."
+    }
+  ]
+}

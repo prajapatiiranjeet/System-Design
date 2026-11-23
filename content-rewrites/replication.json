@@ -1,0 +1,89 @@
+{
+  "summary": "Copy a database to other machines to serve more reads and keep working through failures.",
+  "goals": [
+    "How a leader sends changes to followers",
+    "How replicas can serve more reads",
+    "What replication lag means for users",
+    "How to fail over when the leader fails",
+    "When to use analytics replicas, backups, and other replication styles"
+  ],
+  "steps": [
+    {
+      "title": "One database handles every request",
+      "body": [
+        "Every read and write goes to one database server. It is 90% busy, mostly with reads such as product pages, profiles, and feeds. It is also a <span class=\"term\">single point of failure</span>: if it stops, the whole app loses its database."
+      ],
+      "callout": "Many apps do far more reads than writes—often 10 or 100 reads for every write."
+    },
+    {
+      "title": "Keep database copies",
+      "body": [
+        "Add two <span class=\"term\">followers</span>, also called replicas. The <span class=\"term\">leader</span> continues to handle every write and sends each change to the followers in a <span class=\"term\">replication log</span>. Each follower applies the changes and copies the leader’s data."
+      ],
+      "callout": "Leader and follower are also called primary and replica. Most major databases support this setup."
+    },
+    {
+      "title": "Send reads to followers",
+      "body": [
+        "The app now sends reads to the followers and writes to the leader. The two followers share the read work, and the leader’s CPU use falls from 90% to 30%. If read traffic grows, you can add another follower."
+      ],
+      "callout": "This helps apps with many reads. It does not increase write capacity because writes still go to one leader."
+    },
+    {
+      "title": "A follower can be behind",
+      "body": [
+        "Replication is often <span class=\"term\">asynchronous</span>: the leader confirms a write before sending it to the followers. A short time later, each follower applies the change. Alice changes her name and reloads the page. If that read goes to a follower that has not caught up, she sees her old name and may think the save failed."
+      ],
+      "callout": "Replication lag is often milliseconds, but under load it can grow to seconds or minutes."
+    },
+    {
+      "title": "Let users read their own changes",
+      "body": [
+        "One fix is to send a user’s reads to the leader for a few seconds after they write. Other users can keep reading from followers. Another option is <span class=\"term\">synchronous replication</span>: the leader waits for a follower to confirm the change before saying “saved.” This avoids lag on that follower, but makes writes slower and can stop writes if the follower is down."
+      ],
+      "callout": "For important data, some systems use one synchronous follower for safety and asynchronous followers for speed. Fully asynchronous systems may lose the newest writes if the leader fails before copying them."
+    },
+    {
+      "title": "The leader stops",
+      "body": [
+        "The leader crashes. The followers can still serve reads, but writes fail until a new leader is chosen. Users cannot sign up, post, or pay."
+      ],
+      "callout": "Followers can keep reads available. To resume writes, the system needs a new leader."
+    },
+    {
+      "title": "Fail over to a follower",
+      "body": [
+        "<span class=\"term\">Failover</span> means switching work to a backup after a failure. Promote the most up-to-date follower to leader, point writes to it, and have the other follower copy from it. Add a new follower to restore the spare. Writes can resume in seconds to a minute. Changes that had not reached a follower may be lost. The difficult part is knowing whether the old leader is truly dead. If it is only slow or disconnected, both machines might accept writes; this is <span class=\"term\">split brain</span>. A <span class=\"term\">majority vote</span> helps the group agree on one leader. See <em>Consensus &amp; Leader Election</em>."
+      ],
+      "callout": "This is like a standby load balancer taking over. Managed databases can automate failover."
+    },
+    {
+      "title": "Run heavy reports on a separate copy",
+      "body": [
+        "The finance team runs a monthly report that scans years of orders and takes 20 minutes. When it runs on a follower that also serves app reads, the follower slows down and falls minutes behind. Use a dedicated <b>analytics replica</b> that the app does not read from, so large reports do not slow normal requests."
+      ],
+      "callout": "At larger scale, copy data into an analytics warehouse such as BigQuery, Snowflake, or Redshift, built for large scans."
+    },
+    {
+      "title": "Replicas copy mistakes too",
+      "body": [
+        "A software change runs <code>UPDATE users SET email = NULL</code> without a <code>WHERE</code> condition. The leader updates every user, then replication quickly copies the same mistake to every follower. Replicas help when a machine fails, but they do not undo a bad write. For that, keep <span class=\"term\">backups</span>: a snapshot plus archived write logs can rebuild the database as it looked at an earlier time. This is <span class=\"term\">point-in-time recovery</span>."
+      ],
+      "callout": "A backup is useful only if it can be restored. Practice restoring and measure how long it takes."
+    },
+    {
+      "title": "Three ways to copy changes",
+      "body": [
+        "So far, the system has been <b>single-leader</b>: one machine handles writes and others handle reads. It is simple and common in SQL databases. <b>Multi-leader</b> replication has a leader in each region, so writes can stay nearby, but simultaneous edits can conflict. <b>Leaderless</b> systems write to and read from several copies. They use <span class=\"term\">quorums</span>, a rule for how many copies must respond; the CAP lesson covers this."
+      ],
+      "callout": "Use single-leader replication until you have a concrete reason—such as writes in multiple regions or very high availability—to handle conflicts."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>A <b>leader</b> handles writes and sends changes to <b>followers</b>.</li><li>Followers can serve more reads and keep data available if a machine fails.</li><li>Asynchronous followers may <b>lag</b>; send a user’s reads to the leader right after a write.</li><li>When the leader fails, <b>fail over</b> to a follower.</li><li>Keep heavy analytics on a separate replica.</li><li>Replicas are <b>not backups</b>; keep backups and practice restoring them.</li></ul>"
+      ],
+      "callout": "Next: <b>Sharding</b> — when one leader cannot keep up with the writes."
+    }
+  ]
+}

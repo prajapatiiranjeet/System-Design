@@ -1,0 +1,57 @@
+{
+  "summary": "Make any server able to handle the next request by storing user state outside the server.",
+  "goals": [
+    "What “state” means and why it ties a user to one server",
+    "Sticky sessions and what happens when a server fails",
+    "How a shared session store lets any server handle a user",
+    "How a signed token can carry identity",
+    "Why uploaded files belong in object storage"
+  ],
+  "steps": [
+    {
+      "body": [
+        "Alice signs in and adds two items to her cart. Her request reaches Server A, which keeps a <span class=\"term\">session</span> in memory: information about her login and cart. Her browser stores a cookie with the session ID, which later requests use to find that session."
+      ],
+      "callout": "<b>State</b> is information a server remembers between requests, such as a login, a cart, or an unfinished upload."
+    },
+    {
+      "callout": "When one server keeps a user’s state only in its own memory, the other servers cannot use that state."
+    },
+    {
+      "callout": "Sticky sessions keep a user on one server. If many users stick to the same server, it can be overloaded while others sit idle."
+    },
+    {
+      "callout": "With sticky sessions, each server becomes a single point of failure for the users assigned to it."
+    },
+    {
+      "body": [
+        "Keep sessions in a shared, fast <span class=\"term\">session store</span>, often Redis. Every server can read Alice’s session from this store, so any server can handle her request. The application servers are now <span class=\"term\">stateless</span>: they do not keep user information between requests. The load balancer can send requests to any server, and Alice stays signed in."
+      ],
+      "callout": "The shared store adds about one millisecond to a request. In return, you can add, remove, or lose application servers more easily."
+    },
+    {
+      "callout": "Stateless servers can be replaced without losing a user’s session. This also makes it easier to add or remove servers as traffic changes."
+    },
+    {
+      "body": [
+        "Another option is to put some state in each request as a signed <span class=\"term\">token</span>. For example, a JSON Web Token (JWT) can identify Alice. Any server can check the token’s signature without looking up a session. This avoids a shared-store lookup, but a token is hard to cancel before it expires and travels with every request, so keep it small."
+      ],
+      "callout": "A common approach is to use tokens for identity and a shared store for larger or quickly changing data, such as carts or revoked logins."
+    },
+    {
+      "callout": "Anything saved only on one server’s disk—uploads, generated PDFs, or temporary files—is unavailable to other servers. It is also lost when that server is replaced."
+    },
+    {
+      "body": [
+        "Store files in shared <span class=\"term\">object storage</span>, such as Amazon S3, Google Cloud Storage, or Azure Blob Storage. It is designed to store durable files that every server can access. Server A saves the avatar there, and B and C can read the same file. A browser can also fetch images through a CDN."
+      ],
+      "callout": "Rule of thumb: servers should not keep information that must survive a request. Put sessions in a shared store or token, files in object storage, and application data in a database."
+    },
+    {
+      "body": [
+        "<ul class=\"takeaways\"><li>State kept only in a server’s memory <b>ties the user to that server</b>.</li><li><b>Sticky sessions</b> hide the problem until that server fails.</li><li>Move state to a <b>shared store</b> or carry some of it in a <b>signed token</b>.</li><li>Store files in <b>object storage</b>, not on one server’s local disk.</li><li><b>Stateless</b> servers can be added, removed, or replaced more easily.</li></ul>"
+      ],
+      "callout": "Next: <b>Caching</b> — the database used by these stateless servers can become a bottleneck."
+    }
+  ]
+}

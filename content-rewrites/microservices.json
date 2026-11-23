@@ -1,0 +1,96 @@
+{
+  "summary": "Compare one deployable application with separately owned services, and learn the costs of splitting.",
+  "goals": [
+    "Where a monolith works well and where it can hurt",
+    "How to split services by business capability",
+    "What network calls add",
+    "How local read copies replace cross-service queries",
+    "How contract tests and gradual migration help"
+  ],
+  "steps": [
+    {
+      "title": "One application, one deployment",
+      "body": [
+        "Your shop is a <span class=\"term\">monolith</span>: one codebase contains accounts, catalog, orders, and payments. The whole app is deployed as one unit, with several copies behind a load balancer and one shared database. For a small team this is simple. Features call each other directly in the same process, one release ships all changes, and a stack trace can show the whole path."
+      ],
+      "callout": "Many large companies ran monoliths for years. A monolith is a good architecture until it no longer fits the team or workload."
+    },
+    {
+      "title": "Many teams share one codebase",
+      "body": [
+        "The company grows to 50 engineers across six teams. Each team’s changes go into one weekly release, so one bug can delay everyone. A memory leak in the new reports feature can crash the whole application, including checkout. And if search needs more memory, every feature must be scaled along with it."
+      ],
+      "callout": "Monolith problems often come from team coordination: teams wait on each other, and one feature’s bug can affect the whole app."
+    },
+    {
+      "title": "Split by business capability",
+      "body": [
+        "Break the app into <span class=\"term\">microservices</span> around business areas such as Users, Catalog, Orders, and Payments. Each service is a separate program, owned by a team and deployed on its own schedule. An <b>API gateway</b> gives client apps one front door and routes each request to the right service."
+      ],
+      "callout": "Split around business capabilities, not technical layers. A “database service” or “UI service” may only move the dependency elsewhere."
+    },
+    {
+      "title": "Give each service its own data",
+      "body": [
+        "If services still share one database, they remain tied together: one team’s schema change can break other teams. Give each service its own database and let only that service access it. If Orders needs payment data, it asks Payments through an API or listens for its events."
+      ],
+      "callout": "A database per service allows independent deployments, but removes joins and transactions across services. See <em>Sagas</em>."
+    },
+    {
+      "title": "Network calls can fail",
+      "body": [
+        "Showing one order page now takes six network hops: gateway to Orders, Orders to Payments, plus calls to Users and Catalog. Each network hop adds delay and can fail or become slow. Debugging can span four codebases. The system needs timeouts, retries, tracing, and dashboards to handle these failures."
+      ],
+      "callout": "A function call inside one program either returns or raises an error. A network call can fail partway, arrive late, or get no response."
+    },
+    {
+      "title": "Avoid a distributed monolith",
+      "body": [
+        "One company split its app into 12 services but kept services reading one another’s tables. Each feature still needed changes in five services, all released together. The company got the network overhead of microservices and the close dependencies of a monolith. Releases became slower."
+      ],
+      "callout": "If services must always be deployed together, they still behave like one service. Clear boundaries should come before the split."
+    },
+    {
+      "title": "Order history needs catalog data",
+      "body": [
+        "The order-history page shows each order with product names and photos. In one database, a SQL join could combine this data. Now orders are in Orders and products are in Catalog, so there is no join across the services. Orders calls Catalog once for each order: 20 orders mean 20 calls. This is the <b>N+1 problem</b>. The page slows down, and it also depends on Catalog being available."
+      ],
+      "callout": "Screens that combine data from many services can be difficult. Plan for them when choosing service boundaries."
+    },
+    {
+      "title": "Keep a local copy for reading",
+      "body": [
+        "Orders can keep copies of the catalog fields it displays, such as product name and photo. Catalog publishes a <code>ProductUpdated</code> event when they change, and Orders updates its local copy. Order history can use one query in Orders’ database and still work if Catalog is down. The price on an old order remains the price at purchase, because that is historical data."
+      ],
+      "callout": "The copy is <span class=\"term\">eventually consistent</span>: a changed product name may take a moment to appear. That delay is acceptable for order history."
+    },
+    {
+      "title": "Test API contracts between teams",
+      "body": [
+        "The Payments team renames <code>amount</code> to <code>amount_cents</code>. Its own tests pass, but Orders still expects the old field, so checkout fails after the release. <span class=\"term\">Consumer-driven contract tests</span> let Orders publish the fields it depends on. Payments’ build checks those contracts before release and blocks a breaking change before production."
+      ],
+      "callout": "Combine contract tests with API versioning: add fields freely, and remove them only when no contract needs them."
+    },
+    {
+      "title": "Choose one application or many",
+      "body": [
+        "<table class=\"compare\"><thead><tr><th></th><th>Monolith</th><th>Microservices</th></tr></thead><tbody><tr><td>Team size</td><td>One to a few teams</td><td>Many teams</td></tr><tr><td>Deployments</td><td>Together</td><td>Independent</td></tr><tr><td>Calls</td><td>In-process and fast</td><td>Network calls that can fail</td></tr><tr><td>Data</td><td>One database, joins, transactions</td><td>Database per service; sagas</td></tr><tr><td>Operations</td><td>Simple</td><td>Needs good tools</td></tr></tbody></table>A common path is a <b>modular monolith</b>: one deployable app with clear internal boundaries. Split out a module only when a team needs to deploy or scale it independently."
+      ],
+      "callout": "Microservices can solve organizational scaling problems. Without those problems, they often add cost and complexity."
+    },
+    {
+      "title": "Migrate one capability at a time",
+      "body": [
+        "Do not rewrite the whole app at once. Put the gateway in front of the monolith, build one new Payments service, and route only <code>/payments/*</code> to it. Other requests still go to the monolith. Move one business capability at a time until the monolith can be retired. Each step can be shipped and reversed."
+      ],
+      "callout": "This gradual migration is called the <b>strangler fig</b> pattern, named after a plant that grows around a tree until it can stand on its own."
+    },
+    {
+      "title": "Recap",
+      "body": [
+        "<ul class=\"takeaways\"><li>A <b>monolith</b> is simple and fast until many teams need to work independently.</li><li><b>Microservices</b> split by business capability, and each service owns its data.</li><li>They add network calls, partial failures, and operational work.</li><li>Use <b>local read copies</b> instead of cross-service joins; protect changes with <b>contract tests</b>.</li><li>Avoid a <b>distributed monolith</b>. Migrate gradually with the <b>strangler fig</b> pattern.</li></ul>"
+      ],
+      "callout": "Next: <b>Service Discovery</b> — how services find each other as instances come and go."
+    }
+  ]
+}
